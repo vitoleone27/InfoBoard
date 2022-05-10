@@ -4,38 +4,35 @@ from tkinter import *
 import tkinter.messagebox
 import webbrowser
 
-top = Tk()
-top.title("Info Board")
-top.geometry('1000x1000+250+250')
-
+window = Tk()
+window.title("Info Board")
+width, height = window.winfo_screenwidth(), window.winfo_screenheight()
+window.geometry('%dx%d+0+0' % (width, height))
 
 def openWeather():
     webbrowser.open('https://weather.com/weather/today/l/0bf9c2fb36e8620ba2743f3959a103d36e9ddab6fe86c9b47940cc129e36af97')
 
-labelText = StringVar()
-labelText.set("Reminders")
-labelReminders = Label(top, textvariable=labelText, height=4)
-labelReminders.pack()
+def createAllButtons():
+    createButton(window, "Reminders", 0, 0)
+    createButton(window, "Weather", 0, 550)
+    createButton(window, "Jokes", width - 450, 0)
+    createButton(window, "Sports", width - 450, 550)
+    createButton(window, "Close", 850, 700)
 
-reminderButtonText = StringVar()
-reminderButton = Button(top, text="Reminders", width=50)
-reminderButton.pack()
+def createButton(window, name, x, y):
+    buttonText = StringVar()
+    if name == "Reminders":
+        button = Button(window, text=name, command=openWeather, height = 25, width = 50)
+    elif name == "Weather":
+        button = Button(window, text=name, command=openWeather, height = 25, width = 50)
+    elif name == "Jokes":
+        button = Button(window, text=name, command=openWeather, height = 25, width = 50)
+    elif name == "Sports":
+        button = Button(window, text=name, command=openWeather, height = 25, width = 50)
+    else:
+        button = Button(window, text=name, command=window.destroy, width = 25)
+    button.place(x=x, y=y)
 
-weatherButtonText = StringVar()
-weatherButton = Button(top, text="Weather", width=50, command=openWeather)
-weatherButton.pack()
+createAllButtons()
 
-jokeButtonText = StringVar()
-jokeButton = Button(top, text="Jokes", width=50)
-jokeButton.pack()
-
-sportsButtonText = StringVar()
-sportsButton = Button(top, text="Sports Scores", width=50)
-sportsButton.pack()
-
-closeButtonText = StringVar()
-closeButton = Button(top, text="Close", width=25, command=top.destroy)
-closeButton.pack()
-
-top.mainloop()
-
+window.mainloop()
