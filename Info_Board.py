@@ -20,7 +20,6 @@ def createAllButtons():
     createButton(window, "Close", 850, 700)
 
 def createButton(window, name, x, y):
-    buttonText = StringVar()
     if name == "Reminders":
         button = Button(window, text=name, command=openWeather, height = 25, width = 50)
     elif name == "Weather":
