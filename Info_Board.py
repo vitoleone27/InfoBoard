@@ -13,12 +13,11 @@ width, height = window.winfo_screenwidth(), window.winfo_screenheight()
 window.geometry('%dx%d+0+0' % (width, height))
 
 def cleanString(description):
-    i = 1
     try:
-        for i in description.len():
+        for i in range(0, len(description)):
             if description[i].isupper():
-                description[:i] + " " + description[i:]
-            i+=1
+                description = description[:i] + " " + description[i:]
+            i += 1
         return description
     except:
         return description
