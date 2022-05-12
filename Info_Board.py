@@ -14,10 +14,16 @@ window.geometry('%dx%d+0+0' % (width, height))
 
 def cleanString(description):
     try:
+        spaces = 0
         for i in range(0, len(description)):
-            if description[i].isupper():
+            if description[i].isupper() and i != 0 and description[i-1] != " ":
                 description = description[:i] + " " + description[i:]
-            i += 1
+            elif description[i:i+4] == "then" and description[i-1] != " ":
+                description = description[:i] + " " + description[i:]
+            if description[i] == " ":
+                if spaces % 2 != 0:
+                    description = description[:i] + "\r" + description[i:]
+                spaces += 1
         return description
     except:
         return description
@@ -29,30 +35,31 @@ def openWeather():
     weatherWindow.geometry('%dx%d+0+0' % (width, height))
     canvas = Canvas(weatherWindow, width=width, height=height, bg="DarkBlue")
 
-
     contents = requests.get('https://forecast.weather.gov/MapClick.php?lat=40.1944&lon=-75.2429')
     soup = BeautifulSoup(contents.text, 'html.parser')
 
     location = soup.find('div', class_='panel panel-default').find_next_sibling('div')
     location = location.find('h2', class_='panel-title')
 
-    canvas.create_text(width/2, 50, text=location.string.strip(), fill="white", font=("Helvetica 30 bold"))
+    canvas.create_text(width/2, height/8, text=location.string.strip(), fill="white", font=("Helvetica 50 bold"))
 
     days = soup.find_all('p', class_='period-name')
     descriptions = soup.find_all('p', class_='short-desc')
     tempLows = soup.find_all('p', class_="temp temp-low")
     ##forecasts = soup.find_all('img', class_='forecast-icon')
 
-    startY = 200
     ##for forecast in forecasts:
        ## canvas.create_text(width/2-25, startY, text=forecast['alt'], fill="white", font=("Helvetica 15"))
       ##  startY += 50
     i = 0
+    j = 0
     for day in days:
         dayName = cleanString(day.get_text())
-        canvas.create_text(width/2-25, startY, text=dayName + "\n " + descriptions[i].get_text(), fill="white", font=("Helvetica 15"))
+        cleanDescription = cleanString(descriptions[i].get_text())
+        canvas.create_text(width*(j/8), height/3, text=dayName, fill="white", font=("Helvetica 25 bold"))
+        canvas.create_text(width*(j/8), height/2, text=cleanDescription, fill="white", font=("Helvetica 15"))
         i += 1
-        startY += 50
+        j += 1
 
     createButton(weatherWindow, "Close")
 
@@ -85,7 +92,6 @@ def createButton(window, name):
     else:
         button = Button(window, text=name, command=window.destroy, width = 25, font=("Helvetica 15"))
         button.place(relx=.5, rely=.8, anchor=CENTER)
-
 
 createAllButtons()
 
