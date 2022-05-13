@@ -15,17 +15,20 @@ window.geometry('%dx%d+0+0' % (width, height))
 def cleanString(description):
     try:
         spaces = 0
-        for i in range(0, len(description)):
-            if description[i].isupper() and i != 0 and description[i-1] != " ":
+        for i in range(1, len(description)):
+            if description[i].isupper() and description[i-1] != " ":
                 description = description[:i] + " " + description[i:]
-            elif description[i:i+4] == "then" and description[i-1] != " ":
+            elif description[i:i+4] == "then" and description[i-1] != " " and description[i-1] != "\r":
                 description = description[:i] + " " + description[i:]
-            if description[i] == " ":
-                if spaces % 2 != 0:
-                    description = description[:i] + "\r" + description[i:]
+            if description[i] == " " and spaces % 2 != 0 and description[i-1] != "\r":
+                description = description[:i] + "\r" + description[i+1:]
                 spaces += 1
+            elif description[i] == " ":
+                space += 1
+        print(description)
         return description
     except:
+        print(description)
         return description
 
 def openWeather():
@@ -35,7 +38,7 @@ def openWeather():
     weatherWindow.geometry('%dx%d+0+0' % (width, height))
     canvas = Canvas(weatherWindow, width=width, height=height, bg="DarkBlue")
 
-    contents = requests.get('https://forecast.weather.gov/MapClick.php?lat=40.1944&lon=-75.2429')
+    contents = requests.get('https://forecast.weather.gov/MapClick.php?lat=40.1552&lon=-75.2204')
     soup = BeautifulSoup(contents.text, 'html.parser')
 
     location = soup.find('div', class_='panel panel-default').find_next_sibling('div')
@@ -43,27 +46,27 @@ def openWeather():
 
     canvas.create_text(width/2, height/8, text=location.string.strip(), fill="white", font=("Helvetica 50 bold"))
 
+    createButton(weatherWindow, "Close")
+    canvas.pack()
+
     days = soup.find_all('p', class_='period-name')
     descriptions = soup.find_all('p', class_='short-desc')
     tempLows = soup.find_all('p', class_="temp temp-low")
     ##forecasts = soup.find_all('img', class_='forecast-icon')
 
-    ##for forecast in forecasts:
-       ## canvas.create_text(width/2-25, startY, text=forecast['alt'], fill="white", font=("Helvetica 15"))
-      ##  startY += 50
     i = 0
-    j = 0
+    x = 125
     for day in days:
         dayName = cleanString(day.get_text())
         cleanDescription = cleanString(descriptions[i].get_text())
-        canvas.create_text(width*(j/8), height/3, text=dayName, fill="white", font=("Helvetica 25 bold"))
-        canvas.create_text(width*(j/8), height/2, text=cleanDescription, fill="white", font=("Helvetica 15"))
+        label = Label(canvas, text=dayName + "\r\r" + cleanDescription, width=15, height=10, fg="blue", bg= "white", font=("Helvetica 20 bold"))
+        ##label2= Label(canvas, width*(j/8), height/2, text=cleanDescription, fg="white", bg="black", font=("Helvetica 12"))
+        canvas.create_window(x, height/3, window=label)
+        x += 250
         i += 1
-        j += 1
 
-    createButton(weatherWindow, "Close")
-
-    canvas.pack()
+    ##createButton(weatherWindow, "Close")
+    ##canvas.pack()
 
 def openSports():
     webbrowser.open("https://www.espn.com/")
