@@ -5,7 +5,7 @@ import tkinter.messagebox
 import webbrowser
 from bs4 import BeautifulSoup
 import requests
-from sys import getsizeof
+from PIL import ImageTk, Image
 
 window = Tk()
 window.title("Info Board")
@@ -24,12 +24,27 @@ def cleanString(description):
                 description = description[:i] + "\r" + description[i+1:]
                 spaces += 1
             elif description[i] == " ":
-                space += 1
-        print(description)
+                spaces += 1
         return description
     except:
-        print(description)
         return description
+
+def createWeatherPanels(index, low, high, indexLocation, days, soup, canvas, x):
+    descriptions = soup.find_all('p', class_='short-desc')
+    tempHighs = soup.find_all('p', class_="temp temp-high")
+    tempLows = soup.find_all('p', class_="temp temp-low")
+
+    dayName = cleanString(days[index].get_text())
+    if indexLocation:
+        temp = tempLows[low].get_text()
+        low+=1
+    else:
+        temp = tempHighs[high].get_text()
+        high+=1
+    cleanDescription = cleanString(descriptions[index].get_text())
+    weatherReport = dayName + "\r\r" + temp + "\r\r" + cleanDescription
+    label = Label(canvas, text="\r" + weatherReport.strip(), width=18, height=10, anchor="n", fg="blue", bg= "white", font=("Helvetica 25 bold"))
+    canvas.create_window(x, height/2, window=label)
 
 def openWeather():
     weatherWindow = Toplevel(window)
@@ -43,33 +58,56 @@ def openWeather():
 
     location = soup.find('div', class_='panel panel-default').find_next_sibling('div')
     location = location.find('h2', class_='panel-title')
-
-    canvas.create_text(width/2, height/8, text=location.string.strip(), fill="white", font=("Helvetica 50 bold"))
-
+    currentTemp = soup.find('p', class_='myforecast-current-lrg')
+    currentTempDescription = soup.find('p', class_='myforecast-current')
+    canvas.create_text(width/2, height/8, text=location.string.strip() + ": " + currentTemp.get_text(), fill="white", font=("Helvetica 60 bold"))
+    canvas.create_text(width/2, height/8 + 100, text=currentTempDescription.get_text(), fill="white", font=("Helvetica 30 bold"))
     createButton(weatherWindow, "Close")
     canvas.pack()
 
     days = soup.find_all('p', class_='period-name')
-    descriptions = soup.find_all('p', class_='short-desc')
-    tempLows = soup.find_all('p', class_="temp temp-low")
-    ##forecasts = soup.find_all('img', class_='forecast-icon')
-
-    i = 0
-    x = 125
-    for day in days:
-        dayName = cleanString(day.get_text())
-        cleanDescription = cleanString(descriptions[i].get_text())
-        label = Label(canvas, text=dayName + "\r\r" + cleanDescription, width=15, height=10, fg="blue", bg= "white", font=("Helvetica 20 bold"))
-        ##label2= Label(canvas, width*(j/8), height/2, text=cleanDescription, fg="white", bg="black", font=("Helvetica 12"))
-        canvas.create_window(x, height/3, window=label)
-        x += 250
-        i += 1
-
-    ##createButton(weatherWindow, "Close")
-    ##canvas.pack()
+    x = 180
+    low = 0
+    high = 0
+    dayName = cleanString(days[0].get_text())
+    if dayName == "Tonight":
+        for i in range(0, 5):
+            createWeatherPanels(i, low, high, i % 2 == 0, days, soup, canvas, x)
+            x += 390
+    else:
+        for i in range(0, 5):
+            createWeatherPanels(i, low, high, i % 2 != 0, days, soup, canvas, x)
+            x += 390
 
 def openSports():
-    webbrowser.open("https://www.espn.com/")
+    sportsWindow = Toplevel(window)
+    sportsWindow.title("Todays Lineup")
+    width, height = sportsWindow.winfo_screenwidth(), sportsWindow.winfo_screenheight()
+    sportsWindow.geometry('%dx%d+0+0' % (width, height))
+    canvas = Canvas(sportsWindow, width=width, height=height, bg="Red")
+
+    createButton(sportsWindow, "Close")
+    canvas.pack()
+
+    contents = requests.get('https://www.si.com/scoreboard')
+    soup = BeautifulSoup(contents.text, 'html5lib')
+
+    games = soup.find('div', title='m-scoreboard--container').find_all('phoenix-scoreboard-league')
+    leagueName = soup.find_all('span', class_='event__title--name')
+    print(len(leagueName), len(games))
+    x = 100
+    i = 0
+    for game in games:
+        leagueName = soup.find_all('div', class_='event--section').find('span', class_='event__title--type').get_text()
+        result = game.find('div', class_='event__stage--block').get_text()
+        homeTeam = game.find('div', class_='event__participant event__participant--home').get_text()
+        homeTeamScore = game.find('div', class_='event__score event__score--home').get_text()
+        awayTeam = game.find('div', class_='event__participant event__participant--away').get_text()
+        awayTeamScore = game.find('div', class_='event__score event__score--away').get_text()
+        print(leagueName + " " + homeTeam)
+        label = Label(canvas, text= leagueName() + "\r" + homeTeam, width=10, height=10, anchor="n", fg="blue", bg= "white", font=("Helvetica 25 bold"))
+        canvas.create_window(x, height/2, window=label)
+        x +=100
 
 def createAllButtons():
     createButton(window, "Reminders")
