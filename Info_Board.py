@@ -5,7 +5,7 @@ import tkinter.messagebox
 import webbrowser
 from bs4 import BeautifulSoup
 import requests
-from PIL import ImageTk, Image
+import math
 
 window = Tk()
 window.title("Info Board")
@@ -60,24 +60,24 @@ def openWeather():
     location = location.find('h2', class_='panel-title')
     currentTemp = soup.find('p', class_='myforecast-current-lrg')
     currentTempDescription = soup.find('p', class_='myforecast-current')
-    canvas.create_text(width/2, height/8, text=location.string.strip() + ": " + currentTemp.get_text(), fill="white", font=("Helvetica 60 bold"))
-    canvas.create_text(width/2, height/8 + 100, text=currentTempDescription.get_text(), fill="white", font=("Helvetica 30 bold"))
+    canvas.create_text(width/2, height/8, text=location.string.strip() + ": " + currentTemp.get_text(), fill="white", font=("Helvetica 60 bold underline"))
+    canvas.create_text(width/2, height/8 + 100, text=currentTempDescription.get_text(), fill="white", font=("Helvetica 30 italic"))
     createButton(weatherWindow, "Close")
     canvas.pack()
 
     days = soup.find_all('p', class_='period-name')
-    x = 180
+    x = width/10
     low = 0
     high = 0
     dayName = cleanString(days[0].get_text())
     if dayName == "Tonight":
         for i in range(0, 5):
             createWeatherPanels(i, low, high, i % 2 == 0, days, soup, canvas, x)
-            x += 390
+            x += (width *(1/5))
     else:
         for i in range(0, 5):
             createWeatherPanels(i, low, high, i % 2 != 0, days, soup, canvas, x)
-            x += 390
+            x += (width * (1/5))
 
 def openSports():
     sportsWindow = Toplevel(window)
@@ -118,20 +118,23 @@ def createAllButtons():
 
 def createButton(window, name):
     buttonText = StringVar()
+    buttonWidth= int(width * .02604167)
+    buttonHeight= int(height * .02314815)
+
     if name == "Reminders":
-        button = Button(window, text=name, command=openWeather, height = 25, width = 50)
+        button = Button(window, text=name, command=openWeather, height = buttonHeight, width = buttonWidth)
         button.place(x=0, y=0)
     elif name == "Weather":
-        button = Button(window, text=name, command=openWeather, height = 25, width = 50)
-        button.place(x=0, y=550)
+        button = Button(window, text=name, command=openWeather, height = buttonHeight, width = buttonWidth)
+        button.place(x=0, y=height/2)
     elif name == "Jokes":
-        button = Button(window, text=name, command=openWeather, height = 25, width = 50)
-        button.place(x=width - 480, y=0)
+        button = Button(window, text=name, command=openWeather, height = buttonHeight, width = buttonWidth)
+        button.place(x=width - width/4, y=0)
     elif name == "Sports":
-        button = Button(window, text=name, command=openSports, height = 25, width = 50)
-        button.place(x=width - 480, y=550)
+        button = Button(window, text=name, command=openSports, height = buttonHeight, width = buttonWidth)
+        button.place(relx=.75, y=height/2)
     else:
-        button = Button(window, text=name, command=window.destroy, width = 25, font=("Helvetica 15"))
+        button = Button(window, text=name, command=window.destroy, width = int(buttonWidth/2), font=("Helvetica 15"))
         button.place(relx=.5, rely=.8, anchor=CENTER)
 
 createAllButtons()
