@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import requests
 import math
 import time
+from datetime import datetime
 from tkinter.ttk import Style
 from tkinter import ttk
 
@@ -144,8 +145,10 @@ def createButton(window, name):
 createAllButtons()
 
 def timeRefresh():
+    date = datetime.now()
     currentTime = time.strftime("%I:%M:%S %p", time.localtime())
-    label.config(text=currentTime)
+    currentDate = date.strftime("%m/%d")
+    label.config(text=currentTime + "\r" + currentDate)
     window.after(1000, timeRefresh)
 
 font = ('Comic Sans MS', 80)
