@@ -6,11 +6,15 @@ import webbrowser
 from bs4 import BeautifulSoup
 import requests
 import math
+import time
+from tkinter.ttk import Style
+from tkinter import ttk
 
 window = Tk()
 window.title("Info Board")
 width, height = window.winfo_screenwidth(), window.winfo_screenheight()
 window.geometry('%dx%d+0+0' % (width, height))
+window.configure(bg="black")
 
 def cleanString(description):
     try:
@@ -70,7 +74,7 @@ def openWeather():
     low = 0
     high = 0
     dayName = cleanString(days[0].get_text())
-    if dayName == "Tonight":
+    if dayName == "Times":
         for i in range(0, 5):
             createWeatherPanels(i, low, high, i % 2 == 0, days, soup, canvas, x)
             x += (width *(1/5))
@@ -122,21 +126,32 @@ def createButton(window, name):
     buttonHeight= int(height * .02314815)
 
     if name == "Reminders":
-        button = Button(window, text=name, command=openWeather, height = buttonHeight, width = buttonWidth)
+        button = Button(window, text=name, command=openWeather, height = buttonHeight, width = buttonWidth, bg="ForestGreen", fg="white")
         button.place(x=0, y=0)
     elif name == "Weather":
-        button = Button(window, text=name, command=openWeather, height = buttonHeight, width = buttonWidth)
-        button.place(x=0, y=height/2)
+        button = Button(window, text=name, command=openWeather, height = buttonHeight, width = buttonWidth, bg="DarkBlue", fg="white")
+        button.place(x=0, rely=.5)
     elif name == "Jokes":
-        button = Button(window, text=name, command=openWeather, height = buttonHeight, width = buttonWidth)
-        button.place(x=width - width/4, y=0)
+        button = Button(window, text=name, command=openWeather, height = buttonHeight, width = buttonWidth, bg="yellow", fg="black")
+        button.place(relx=.75, y=0)
     elif name == "Sports":
-        button = Button(window, text=name, command=openSports, height = buttonHeight, width = buttonWidth)
-        button.place(relx=.75, y=height/2)
+        button = Button(window, text=name, command=openSports, height = buttonHeight, width = buttonWidth, bg="magenta", fg="white")
+        button.place(relx=.75, rely = .5)
     else:
-        button = Button(window, text=name, command=window.destroy, width = int(buttonWidth/2), font=("Helvetica 15"))
+        button = Button(window, text=name, command=window.destroy, width = int(buttonWidth/2), font=("Helvetica 15"), bg="red", fg="white")
         button.place(relx=.5, rely=.8, anchor=CENTER)
 
 createAllButtons()
+
+def timeRefresh():
+    currentTime = time.strftime("%I:%M:%S %p", time.localtime())
+    label.config(text=currentTime)
+    window.after(1000, timeRefresh)
+
+font = ('Comic Sans MS', 80)
+label = Label(window, font= font, fg="white", bg="black")
+label.place(relx = .5, rely= .45, anchor= CENTER)
+
+timeRefresh()
 
 window.mainloop()
