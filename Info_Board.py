@@ -114,10 +114,42 @@ def openSports():
         canvas.create_window(x, height/2, window=label)
         x +=100
 
+def connectToMySQL():
+    cnx = mysql.connecto.connect(password='vito', user='vito')
+    cursor = cnx.cursor()
+    return cursor, cnx
+
+def createDatabase(cursor, DB_NAME):
+    try:
+        cursor.execute("CREATE DATABASE {} DEFAULT CHARACTER SET 'utf8'".format(DB_NAME))
+    except mysql.conector.Error as err:
+        print("Failed to connnect to database: {}".format(err))
+        exit(1)
+
+
+
+def openJokesAndRiddles():
+    DB_NAME = 'JokesAndRiddles'
+    cursor, connection = connectToMySQL()
+
+    sql = "DROP DATABASE IF EXISTS JokesAndRiddles"
+    cursor.execute(sql)
+
+    createDatabase(cursor, DB_NAME)
+    cursor.execute("USE {}".format(DB_NAME))
+
+    with open('create.sql', 'r') as file:
+        for line in file:
+            sql = line
+            sql.strip()
+            cursor.execute(sql)
+
+
+
 def createAllButtons():
     createButton(window, "Reminders")
     createButton(window, "Weather")
-    createButton(window, "Jokes")
+    createButton(window, "Jokes/Riddles")
     createButton(window, "Sports")
     createButton(window, "Close")
 
@@ -132,8 +164,8 @@ def createButton(window, name):
     elif name == "Weather":
         button = Button(window, text=name, command=openWeather, height = buttonHeight, width = buttonWidth, bg="DarkBlue", fg="white")
         button.place(x=0, rely=.5)
-    elif name == "Jokes":
-        button = Button(window, text=name, command=openWeather, height = buttonHeight, width = buttonWidth, bg="yellow", fg="black")
+    elif name == "Jokes/Riddles":
+        button = Button(window, text=name, command=openJokesAndRiddles, height = buttonHeight, width = buttonWidth, bg="yellow", fg="black")
         button.place(relx=.75, y=0)
     elif name == "Sports":
         button = Button(window, text=name, command=openSports, height = buttonHeight, width = buttonWidth, bg="magenta", fg="white")
