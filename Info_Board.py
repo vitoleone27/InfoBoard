@@ -4,12 +4,14 @@ from tkinter import *
 import tkinter.messagebox
 import webbrowser
 from bs4 import BeautifulSoup
-import requests
+##import requests
 import math
 import time
 from datetime import datetime
 from tkinter.ttk import Style
 from tkinter import ttk
+import mysql.connector
+from mysql import connector
 
 window = Tk()
 window.title("Info Board")
@@ -34,10 +36,25 @@ def cleanString(description):
     except:
         return description
 
-def createWeatherPanels(index, low, high, indexLocation, days, soup, canvas, x):
+def apostropheFixer(string):
+    try:
+        sum = 0
+        for i in range(0, len(string)):
+            i += sum
+            if string[i] == "\'":
+                string = string[:i] + "\\" + string[i:]
+                sum +=1
+        return string
+    except:
+        return string
+
+
+def createWeatherPanels(index, indexLocation, days, soup, canvas, x):
     descriptions = soup.find_all('p', class_='short-desc')
     tempHighs = soup.find_all('p', class_="temp temp-high")
     tempLows = soup.find_all('p', class_="temp temp-low")
+    low = 0
+    high = 0
 
     dayName = cleanString(days[index].get_text())
     if indexLocation:
@@ -72,16 +89,14 @@ def openWeather():
 
     days = soup.find_all('p', class_='period-name')
     x = width/10
-    low = 0
-    high = 0
     dayName = cleanString(days[0].get_text())
     if dayName == "Times":
         for i in range(0, 5):
-            createWeatherPanels(i, low, high, i % 2 == 0, days, soup, canvas, x)
+            createWeatherPanels(i, i % 2 == 0, days, soup, canvas, x)
             x += (width *(1/5))
     else:
         for i in range(0, 5):
-            createWeatherPanels(i, low, high, i % 2 != 0, days, soup, canvas, x)
+            createWeatherPanels(i, i % 2 != 0, days, soup, canvas, x)
             x += (width * (1/5))
 
 def openSports():
@@ -115,35 +130,88 @@ def openSports():
         x +=100
 
 def connectToMySQL():
-    cnx = mysql.connecto.connect(password='vito', user='vito')
+    cnx = mysql.connector.connect(password='project', user='project')
     cursor = cnx.cursor()
     return cursor, cnx
 
-def createDatabase(cursor, DB_NAME):
-    try:
-        cursor.execute("CREATE DATABASE {} DEFAULT CHARACTER SET 'utf8'".format(DB_NAME))
-    except mysql.conector.Error as err:
-        print("Failed to connnect to database: {}".format(err))
-        exit(1)
-
-
 
 def openJokesAndRiddles():
-    DB_NAME = 'JokesAndRiddles'
+    JokesAndRiddlesWindow = Toplevel(window)
+    JokesAndRiddlesWindow.title("Today's Lineup")
+    width, height = JokesAndRiddlesWindow.winfo_screenwidth(), JokesAndRiddlesWindow.winfo_screenheight()
+    JokesAndRiddlesWindow.geometry('%dx%d+0+0' % (width, height))
+    canvas = Canvas(JokesAndRiddlesWindow, width=width, height=height, bg="Yellow")
+    buttonWidth = int(width * .02604167)
+    createButton(JokesAndRiddlesWindow, "Close")
+    canvas.pack()
+
+    DB_NAME = 'test3'
     cursor, connection = connectToMySQL()
 
-    sql = "DROP DATABASE IF EXISTS JokesAndRiddles"
-    cursor.execute(sql)
-
-    createDatabase(cursor, DB_NAME)
     cursor.execute("USE {}".format(DB_NAME))
 
-    with open('create.sql', 'r') as file:
-        for line in file:
-            sql = line
-            sql.strip()
-            cursor.execute(sql)
+    cursor.execute("SELECT riddle FROM Riddles ORDER BY RAND() LIMIT 1")
+    riddle = cursor.fetchone()
+    riddle = riddle[0]
 
+    riddleLabel = Label(canvas, text=riddle, width=22, height=7, fg="black", bg="white", font=("Times 45 bold"), wraplength =500, justify=CENTER)
+    canvas.create_window(width / 4.5, height * .225, window=riddleLabel)
+
+    riddle = apostropheFixer(riddle)
+
+    answerLabel = Label(canvas, width=22, height=7, bg="yellow", font=("Times 45 bold"), wraplength=300, justify=CENTER)
+    canvas.create_window(width / 4.5, height * .725, window=answerLabel)
+
+    createButton(JokesAndRiddlesWindow, "New Joke")
+    createButton(JokesAndRiddlesWindow, "Delete Joke")
+
+    answerButton = Button(JokesAndRiddlesWindow, text="Show Answer", command=lambda: showAnswer(riddle, answerLabel),
+                          width=int(buttonWidth / 2), font=("Helvetica 15"),
+                          bg="green", fg="white")
+    answerButton.place(relx=.22, rely=.5, anchor=CENTER)
+
+    riddleButton = Button(JokesAndRiddlesWindow, text="New Riddle", command=lambda: newRiddle(riddleLabel, answerLabel, answerButton), width=int(buttonWidth / 6), height=int(buttonWidth / 6),
+                    font=("Helvetica 15"), bg="Orange", fg="white")
+    riddleButton.place(relx=.5, rely=.25, anchor=CENTER)
+
+
+
+
+
+def newJoke():
+    print("hi")
+
+
+def deleteJoke():
+    print("hi")
+
+
+def newRiddle(riddleLabel, answerLabel, button):
+    DB_NAME = 'test3'
+    cursor, connection = connectToMySQL()
+
+    cursor.execute("USE {}".format(DB_NAME))
+
+    cursor.execute("SELECT riddle FROM Riddles ORDER BY RAND() LIMIT 1")
+    riddle = cursor.fetchone()
+    riddle = riddle[0]
+
+    riddleLabel.configure(text=riddle)
+
+    answerLabel.configure(text="", bg="yellow")
+
+    button.configure(command=lambda: showAnswer(riddle, answerLabel))
+
+
+
+def showAnswer(riddle, answerLabel):
+    DB_NAME = 'test3'
+    cursor, connection = connectToMySQL()
+
+    cursor.execute("USE {}".format(DB_NAME))
+    cursor.execute("SELECT answer FROM Riddles WHERE riddle = \'{}\'".format(riddle))
+    answer = cursor.fetchone()
+    answerLabel.configure(text=answer[0], fg="black", bg="white")
 
 
 def createAllButtons():
@@ -152,6 +220,7 @@ def createAllButtons():
     createButton(window, "Jokes/Riddles")
     createButton(window, "Sports")
     createButton(window, "Close")
+
 
 def createButton(window, name):
     buttonText = StringVar()
@@ -170,6 +239,12 @@ def createButton(window, name):
     elif name == "Sports":
         button = Button(window, text=name, command=openSports, height = buttonHeight, width = buttonWidth, bg="magenta", fg="white")
         button.place(relx=.75, rely = .5)
+    elif name == "New Joke":
+        button = Button(window, text=name, command=newJoke(), width=int(buttonWidth / 2), font=("Helvetica 15"), bg="Orange", fg="white")
+        button.place(relx=.75, rely=.75, anchor=CENTER)
+    elif name == "Delete Joke":
+        button = Button(window, text=name, command=deleteJoke(), width=int(buttonWidth / 2), font=("Helvetica 15"), bg="Black", fg="white")
+        button.place(relx=.75, rely=.25, anchor=CENTER)
     else:
         button = Button(window, text=name, command=window.destroy, width = int(buttonWidth/2), font=("Helvetica 15"), bg="red", fg="white")
         button.place(relx=.5, rely=.8, anchor=CENTER)
@@ -183,7 +258,7 @@ def timeRefresh():
     label.config(text=currentTime + "\r" + currentDate)
     window.after(1000, timeRefresh)
 
-font = ('Comic Sans MS', 80)
+font = ('Arial', 80)
 label = Label(window, font= font, fg="white", bg="black")
 label.place(relx = .5, rely= .45, anchor= CENTER)
 
