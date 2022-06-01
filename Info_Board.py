@@ -4,7 +4,7 @@ from tkinter import *
 import tkinter.messagebox
 import webbrowser
 from bs4 import BeautifulSoup
-import requests
+# import requests
 import math
 import time
 from datetime import datetime
@@ -19,22 +19,24 @@ width, height = window.winfo_screenwidth(), window.winfo_screenheight()
 window.geometry('%dx%d+0+0' % (width, height))
 window.configure(bg="black")
 
+
 def cleanString(description):
     try:
         spaces = 0
         for i in range(1, len(description)):
-            if description[i].isupper() and description[i-1] != " ":
+            if description[i].isupper() and description[i - 1] != " ":
                 description = description[:i] + " " + description[i:]
-            elif description[i:i+4] == "then" and description[i-1] != " " and description[i-1] != "\r":
+            elif description[i:i + 4] == "then" and description[i - 1] != " " and description[i - 1] != "\r":
                 description = description[:i] + " " + description[i:]
-            if description[i] == " " and spaces % 2 != 0 and description[i-1] != "\r":
-                description = description[:i] + "\r" + description[i+1:]
+            if description[i] == " " and spaces % 2 != 0 and description[i - 1] != "\r":
+                description = description[:i] + "\r" + description[i + 1:]
                 spaces += 1
             elif description[i] == " ":
                 spaces += 1
         return description
     except:
         return description
+
 
 def apostropheFixer(string):
     try:
@@ -43,7 +45,7 @@ def apostropheFixer(string):
             i += sum
             if string[i] == "\'" or string[i] == "\"":
                 string = string[:i] + "\\" + string[i:]
-                sum +=1
+                sum += 1
         return string
     except:
         return string
@@ -61,14 +63,16 @@ def createWeatherPanels(index, indexLocation, days, soup, canvas, x, hazard):
     dayName = cleanString(days[index].get_text())
     if indexLocation:
         temp = tempLows[low].get_text()
-        low+=1
+        low += 1
     else:
         temp = tempHighs[high].get_text()
-        high+=1
+        high += 1
     cleanDescription = cleanString(descriptions[index].get_text())
     weatherReport = dayName + "\r\r" + temp + "\r\r" + cleanDescription
-    label = Label(canvas, text="\r" + weatherReport.strip(), width=18, height=10, anchor="n", fg="blue", bg= "white", font=("Helvetica 25 bold"), wraplength = 300)
-    canvas.create_window(x, height/2, window=label)
+    label = Label(canvas, text="\r" + weatherReport.strip(), width=18, height=10, anchor="n", fg="blue", bg="white",
+                  font=("Helvetica 25 bold"), wraplength=300)
+    canvas.create_window(x, height / 2, window=label)
+
 
 def openWeather():
     weatherWindow = Toplevel(window)
@@ -84,13 +88,15 @@ def openWeather():
     location = location.find('h2', class_='panel-title')
     currentTemp = soup.find('p', class_='myforecast-current-lrg')
     currentTempDescription = soup.find('p', class_='myforecast-current')
-    canvas.create_text(width/2, height/8, text=location.string.strip() + ": " + currentTemp.get_text(), fill="white", font=("Helvetica 60 bold underline"))
-    canvas.create_text(width/2, height/8 + 100, text=currentTempDescription.get_text(), fill="white", font=("Helvetica 30 italic"))
+    canvas.create_text(width / 2, height / 8, text=location.string.strip() + ": " + currentTemp.get_text(),
+                       fill="white", font=("Helvetica 60 bold underline"))
+    canvas.create_text(width / 2, height / 8 + 100, text=currentTempDescription.get_text(), fill="white",
+                       font=("Helvetica 30 italic"))
     createButton(weatherWindow, "Close")
     canvas.pack()
 
     days = soup.find_all('p', class_='period-name')
-    x = width/10
+    x = width / 10
     hazard = False
     if "NOW" in days[0].get_text():
         days.pop(0)
@@ -100,11 +106,12 @@ def openWeather():
     if dayName == "Times":
         for i in range(0, 5):
             createWeatherPanels(i, i % 2 == 0, days, soup, canvas, x, hazard)
-            x += (width *(1/5))
+            x += (width * (1 / 5))
     else:
         for i in range(0, 5):
             createWeatherPanels(i, i % 2 != 0, days, soup, canvas, x, hazard)
-            x += (width * (1/5))
+            x += (width * (1 / 5))
+
 
 def openSports():
     sportsWindow = Toplevel(window)
@@ -132,9 +139,11 @@ def openSports():
         awayTeam = game.find('div', class_='event__participant event__participant--away').get_text()
         awayTeamScore = game.find('div', class_='event__score event__score--away').get_text()
         print(leagueName + " " + homeTeam)
-        label = Label(canvas, text= leagueName() + "\r" + homeTeam, width=10, height=10, anchor="n", fg="blue", bg= "white", font=("Helvetica 25 bold"))
-        canvas.create_window(x, height/2, window=label)
-        x +=100
+        label = Label(canvas, text=leagueName() + "\r" + homeTeam, width=10, height=10, anchor="n", fg="blue",
+                      bg="white", font=("Helvetica 25 bold"))
+        canvas.create_window(x, height / 2, window=label)
+        x += 100
+
 
 def connectToMySQL():
     cnx = mysql.connector.connect(password='vito', user='vito')
@@ -161,7 +170,8 @@ def openJokesAndRiddles():
     riddle = cursor.fetchone()
     riddle = riddle[0]
 
-    riddleLabel = Label(canvas, text=riddle, width=28, height=7, fg="black", bg="yellow", font=("Times 45 bold"), wraplength =700, justify=CENTER)
+    riddleLabel = Label(canvas, text=riddle, width=28, height=7, fg="black", bg="yellow", font=("Times 45 bold"),
+                        wraplength=700, justify=CENTER)
     canvas.create_window(width / 4.5, height * .225, window=riddleLabel)
 
     riddle = apostropheFixer(riddle)
@@ -175,21 +185,26 @@ def openJokesAndRiddles():
     print(jokeId)
     joke = joke[0]
 
-    jokeLabel = Label(canvas, text=joke, fg="black", bg="yellow", font=("Times 45 bold"), wraplength =700, justify=CENTER)
+    jokeLabel = Label(canvas, text=joke, fg="black", bg="yellow", font=("Times 45 bold"), wraplength=700,
+                      justify=CENTER)
     canvas.create_window(width * .8, height * .25, window=jokeLabel)
 
-    jokeButton = Button(JokesAndRiddlesWindow, text="New Joke", wraplength = 50, justify=CENTER, command= lambda: newJoke(jokeLabel, deleteButton), font=("Helvetica 15"), bg="cyan", fg="black")
+    jokeButton = Button(JokesAndRiddlesWindow, text="New Joke", wraplength=50, justify=CENTER,
+                        command=lambda: newJoke(jokeLabel, deleteButton), font=("Helvetica 15"), bg="cyan", fg="black")
     jokeButton.place(relx=.6, rely=.25, anchor=CENTER)
 
-    deleteButton = Button(JokesAndRiddlesWindow, text="X", justify=CENTER, command= lambda: deleteJoke(jokeLabel, jokeId, deleteButton), font=("Helvetica 20 bold"), bg="Red", fg="black")
+    deleteButton = Button(JokesAndRiddlesWindow, text="X", justify=CENTER,
+                          command=lambda: deleteJoke(jokeLabel, jokeId, deleteButton), font=("Helvetica 20 bold"),
+                          bg="Red", fg="black")
     deleteButton.place(relx=.6, rely=.1, anchor=CENTER)
 
     answerButton = Button(JokesAndRiddlesWindow, text="Show Answer", command=lambda: showAnswer(riddle, answerLabel),
                           width=int(buttonWidth / 2), font=("Helvetica 15"), bg="green", fg="white")
     answerButton.place(relx=.22, rely=.5, anchor=CENTER)
 
-    riddleButton = Button(JokesAndRiddlesWindow, text="New Riddle", wraplength = 60, justify=CENTER, command=lambda: newRiddle(riddleLabel, answerLabel, answerButton),
-                    font=("Helvetica 15"), bg="cyan", fg="black")
+    riddleButton = Button(JokesAndRiddlesWindow, text="New Riddle", wraplength=60, justify=CENTER,
+                          command=lambda: newRiddle(riddleLabel, answerLabel, answerButton),
+                          font=("Helvetica 15"), bg="cyan", fg="black")
     riddleButton.place(relx=.1, rely=.5, anchor=CENTER)
 
 
@@ -205,6 +220,7 @@ def newJoke(jokeLabel, deleteButton):
     joke = joke[0]
     jokeLabel.configure(text=joke)
     deleteButton.configure(command=lambda: deleteJoke(jokeLabel, jokeId, deleteButton))
+
 
 def deleteJoke(jokeLabel, jokeId, deleteButton):
     DB_NAME = 'JokesAndRiddles'
@@ -249,6 +265,7 @@ def showAnswer(riddle, answerLabel):
     answer = cursor.fetchone()
     answerLabel.configure(text=answer[0], fg="black", bg="yellow")
 
+
 def openReminders():
     remindersWindow = Toplevel(window)
     remindersWindow.title("Remember Me!")
@@ -258,29 +275,51 @@ def openReminders():
     createButton(remindersWindow, "Close")
     canvas.pack()
 
-    createReminderLists()
+    createReminderLists(remindersWindow, canvas,
+                        readReminders("/Users/vitoleone1127/PersonalProjects/InfoBoard/reminders.txt"))
+    # movieReminders = readReminders("/home/pi/Desktop/InfoBoard/movieReminders.txt")
 
-    doneButton = Button(remindersWindow, text="Done", justify=CENTER, command=lambda: createReminderLists(remindersWindow),
-                    font=("Helvetica 15"), bg="red", fg="white")
-    doneButton.place(relx=.1, rely=.5, anchor=CENTER)
 
-def createReminderLists(window, selection):
-    reminders = readReminders("/home/pi/Desktop/InfoBoard/reminders.txt")
-    movieReminders = readReminders("/home/pi/Desktop/InfoBoard/movieReminders.txt")
+def createReminderLists(windowAbove, canvas, list):
+    remindersWindow = Toplevel(window)
+    remindersWindow.title("Remember Me!")
+    width, height = remindersWindow.winfo_screenwidth(), remindersWindow.winfo_screenheight()
+    remindersWindow.geometry('%dx%d+0+0' % (width, height))
+    canvas = Canvas(remindersWindow, width=width, height=height, bg="ForestGreen")
+    createButton(remindersWindow, "Close")
+    canvas.pack()
+    windowAbove.destroy()
 
-    for reminder in reminders:
-        label = Label(window, text=reminder, width=18, height=10, anchor="n", fg="ForestGreen", bg= "white", font=("Helvetica 25 bold"), wraplength = 300)
-        canvas.create_window(x, height/2, window=label)
-        doneButton = Button(remindersWindow, text="Done", justify=CENTER, command=lambda: createReminderLists(remindersWindow),
-                    font=("Helvetica 15"), bg="red", fg="white")
-        doneButton.place(relx=.1, rely=.5, anchor=CENTER)
+    y = height / 8
+    i = 0
+    tempList = list
+    for element in list:
+        elementText = element.split("-")
+        label = Label(remindersWindow, text=elementText[0].strip(), anchor = 'w', fg = "white", bg = "ForestGreen",
+                      font=("Helvetica 25 bold"))
+        canvas.create_window(200, y, window=label)
+        doneButton = Button(remindersWindow, text=elementText[1].strip(), justify=CENTER,
+                            command=lambda index=i: createReminderLists(remindersWindow, canvas, newList(index, tempList)),
+                            font=("Helvetica 15"), bg="red", fg="white")
+        doneButton.place(relx=.8, y=y, anchor=CENTER)
+        y += 50
+        i += 1
+    file = open("/Users/vitoleone1127/PersonalProjects/InfoBoard/reminders.txt", "w")
+    file.truncate(0)
+    for element in list:
+        file.write(element)
+    file.close()
 
+def newList(index, list):
+    list.pop(index)
+    return list
 
 
 def readReminders(inputFile):
     file = open(inputFile, "r")
     reminders = file.readlines()
     return reminders
+
 
 def createAllButtons():
     createButton(window, "Reminders")
@@ -292,26 +331,33 @@ def createAllButtons():
 
 def createButton(window, name):
     buttonText = StringVar()
-    buttonWidth= int(width * .02604167)
-    buttonHeight= int(height * .02314815)
+    buttonWidth = int(width * .02604167)
+    buttonHeight = int(height * .02314815)
 
     if name == "Reminders":
-        button = Button(window, text=name, command=openReminders, height = buttonHeight, width = buttonWidth, bg="ForestGreen", fg="white")
+        button = Button(window, text=name, command=openReminders, height=buttonHeight, width=buttonWidth,
+                        bg="ForestGreen", fg="white")
         button.place(x=0, y=0)
     elif name == "Weather":
-        button = Button(window, text=name, command=openWeather, height = buttonHeight, width = buttonWidth, bg="DarkBlue", fg="white")
+        button = Button(window, text=name, command=openWeather, height=buttonHeight, width=buttonWidth, bg="DarkBlue",
+                        fg="white")
         button.place(x=0, rely=.5)
     elif name == "Jokes/Riddles":
-        button = Button(window, text=name, command=openJokesAndRiddles, height = buttonHeight, width = buttonWidth, bg="yellow", fg="black")
+        button = Button(window, text=name, command=openJokesAndRiddles, height=buttonHeight, width=buttonWidth,
+                        bg="yellow", fg="black")
         button.place(relx=.75, y=0)
     elif name == "Sports":
-        button = Button(window, text=name, command=openSports, height = buttonHeight, width = buttonWidth, bg="magenta", fg="white")
-        button.place(relx=.75, rely = .5)
+        button = Button(window, text=name, command=openSports, height=buttonHeight, width=buttonWidth, bg="magenta",
+                        fg="white")
+        button.place(relx=.75, rely=.5)
     else:
-        button = Button(window, text=name, command=window.destroy, width = int(buttonWidth/2), font=("Helvetica 15"), bg="red", fg="white")
+        button = Button(window, text=name, command=window.destroy, width=int(buttonWidth / 2), font=("Helvetica 15"),
+                        bg="red", fg="white")
         button.place(relx=.5, rely=.8, anchor=CENTER)
 
+
 createAllButtons()
+
 
 def timeRefresh():
     date = datetime.now()
@@ -320,9 +366,10 @@ def timeRefresh():
     label.config(text=currentTime + "\r" + currentDate)
     window.after(1000, timeRefresh)
 
+
 font = ('Arial', 80)
-label = Label(window, font= font, fg="white", bg="black")
-label.place(relx = .5, rely= .45, anchor= CENTER)
+label = Label(window, font=font, fg="white", bg="black")
+label.place(relx=.5, rely=.45, anchor=CENTER)
 
 timeRefresh()
 
