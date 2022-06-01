@@ -67,7 +67,7 @@ def createWeatherPanels(index, indexLocation, days, soup, canvas, x, hazard):
         high+=1
     cleanDescription = cleanString(descriptions[index].get_text())
     weatherReport = dayName + "\r\r" + temp + "\r\r" + cleanDescription
-    label = Label(canvas, text="\r" + weatherReport.strip(), width=18, height=10, anchor="n", fg="blue", bg= "white", font=("Helvetica 25 bold"), wraplength = 250)
+    label = Label(canvas, text="\r" + weatherReport.strip(), width=18, height=10, anchor="n", fg="blue", bg= "white", font=("Helvetica 25 bold"), wraplength = 300)
     canvas.create_window(x, height/2, window=label)
 
 def openWeather():
@@ -92,7 +92,7 @@ def openWeather():
     days = soup.find_all('p', class_='period-name')
     x = width/10
     hazard = False
-    if "NOW:" in days[0].get_text():
+    if "NOW" in days[0].get_text():
         days.pop(0)
         hazard = True
     dayName = cleanString(days[0].get_text())
@@ -176,21 +176,21 @@ def openJokesAndRiddles():
     joke = joke[0]
 
     jokeLabel = Label(canvas, text=joke, fg="black", bg="yellow", font=("Times 45 bold"), wraplength =700, justify=CENTER)
-    canvas.create_window(width * .8, height * .5, window=jokeLabel)
+    canvas.create_window(width * .8, height * .25, window=jokeLabel)
 
-    jokeButton = Button(JokesAndRiddlesWindow, text="New \n Joke", command= lambda: newJoke(jokeLabel, deleteButton), width=int(buttonWidth / 2), font=("Helvetica 15"), bg="Orange", fg="white")
-    jokeButton.place(relx=.75, rely=.75, anchor=CENTER)
-    apostropheFixer(joke)
-    deleteButton = Button(JokesAndRiddlesWindow, text="Bad \n Joke", command= lambda: deleteJoke(jokeLabel, joke, deleteButton), width=int(buttonWidth / 2), font=("Helvetica 15"), bg="Black", fg="white")
-    deleteButton.place(relx=.75, rely=.25, anchor=CENTER)
+    jokeButton = Button(JokesAndRiddlesWindow, text="New Joke", wraplength = 50, justify=CENTER, command= lambda: newJoke(jokeLabel, deleteButton), font=("Helvetica 15"), bg="cyan", fg="black")
+    jokeButton.place(relx=.6, rely=.25, anchor=CENTER)
+
+    deleteButton = Button(JokesAndRiddlesWindow, text="X", justify=CENTER, command= lambda: deleteJoke(jokeLabel, jokeId, deleteButton), font=("Helvetica 20 bold"), bg="Red", fg="black")
+    deleteButton.place(relx=.6, rely=.1, anchor=CENTER)
 
     answerButton = Button(JokesAndRiddlesWindow, text="Show Answer", command=lambda: showAnswer(riddle, answerLabel),
                           width=int(buttonWidth / 2), font=("Helvetica 15"), bg="green", fg="white")
-    answerButton.place(relx=.22, rely=.4625, anchor=CENTER)
+    answerButton.place(relx=.22, rely=.5, anchor=CENTER)
 
-    riddleButton = Button(JokesAndRiddlesWindow, text="New \n Riddle", command=lambda: newRiddle(riddleLabel, answerLabel, answerButton),
+    riddleButton = Button(JokesAndRiddlesWindow, text="New Riddle", wraplength = 60, justify=CENTER, command=lambda: newRiddle(riddleLabel, answerLabel, answerButton),
                     font=("Helvetica 15"), bg="cyan", fg="black")
-    riddleButton.place(relx=.5, rely=.25, anchor=CENTER)
+    riddleButton.place(relx=.1, rely=.5, anchor=CENTER)
 
 
 def newJoke(jokeLabel, deleteButton):
@@ -203,26 +203,24 @@ def newJoke(jokeLabel, deleteButton):
     joke = cursor.fetchone()
     jokeId = joke[1]
     joke = joke[0]
-    apostropheFixer(joke)
     jokeLabel.configure(text=joke)
-    deleteButton.configure(command=lambda: deleteJoke(jokeLabel, joke, deleteButton))
+    deleteButton.configure(command=lambda: deleteJoke(jokeLabel, jokeId, deleteButton))
 
-def deleteJoke(jokeLabel, joke, deleteButton):
+def deleteJoke(jokeLabel, jokeId, deleteButton):
     DB_NAME = 'JokesAndRiddles'
     cursor, connection = connectToMySQL()
 
     cursor.execute("USE {}".format(DB_NAME))
-    apostropheFixer(joke)
-    cursor.execute("DELETE FROM Jokes WHERE body = \'{}\'".format(joke))
+    cursor.execute("DELETE FROM Jokes WHERE id = {}".format(jokeId))
+    connection.commit()
     ## add script to acess terminal to update joke dump file
 
     cursor.execute("SELECT body, id FROM Jokes ORDER BY RAND() LIMIT 1")
     joke = cursor.fetchone()
     jokeId = joke[1]
     joke = joke[0]
-    apostropheFixer(joke)
     jokeLabel.configure(text=joke)
-    deleteButton.configure(command=lambda: deleteJoke(jokeLabel, joke, deleteButton))
+    deleteButton.configure(command=lambda: deleteJoke(jokeLabel, jokeId, deleteButton))
 
 
 def newRiddle(riddleLabel, answerLabel, button):
@@ -242,7 +240,6 @@ def newRiddle(riddleLabel, answerLabel, button):
     button.configure(command=lambda: showAnswer(riddle, answerLabel))
 
 
-
 def showAnswer(riddle, answerLabel):
     DB_NAME = 'JokesAndRiddles'
     cursor, connection = connectToMySQL()
@@ -252,6 +249,38 @@ def showAnswer(riddle, answerLabel):
     answer = cursor.fetchone()
     answerLabel.configure(text=answer[0], fg="black", bg="yellow")
 
+def openReminders():
+    remindersWindow = Toplevel(window)
+    remindersWindow.title("Remember Me!")
+    width, height = remindersWindow.winfo_screenwidth(), remindersWindow.winfo_screenheight()
+    remindersWindow.geometry('%dx%d+0+0' % (width, height))
+    canvas = Canvas(remindersWindow, width=width, height=height, bg="ForestGreen")
+    createButton(remindersWindow, "Close")
+    canvas.pack()
+
+    createReminderLists()
+
+    doneButton = Button(remindersWindow, text="Done", justify=CENTER, command=lambda: createReminderLists(remindersWindow),
+                    font=("Helvetica 15"), bg="red", fg="white")
+    doneButton.place(relx=.1, rely=.5, anchor=CENTER)
+
+def createReminderLists(window, selection):
+    reminders = readReminders("/home/pi/Desktop/InfoBoard/reminders.txt")
+    movieReminders = readReminders("/home/pi/Desktop/InfoBoard/movieReminders.txt")
+
+    for reminder in reminders:
+        label = Label(window, text=reminder, width=18, height=10, anchor="n", fg="ForestGreen", bg= "white", font=("Helvetica 25 bold"), wraplength = 300)
+        canvas.create_window(x, height/2, window=label)
+        doneButton = Button(remindersWindow, text="Done", justify=CENTER, command=lambda: createReminderLists(remindersWindow),
+                    font=("Helvetica 15"), bg="red", fg="white")
+        doneButton.place(relx=.1, rely=.5, anchor=CENTER)
+
+
+
+def readReminders(inputFile):
+    file = open(inputFile, "r")
+    reminders = file.readlines()
+    return reminders
 
 def createAllButtons():
     createButton(window, "Reminders")
@@ -267,7 +296,7 @@ def createButton(window, name):
     buttonHeight= int(height * .02314815)
 
     if name == "Reminders":
-        button = Button(window, text=name, command=openWeather, height = buttonHeight, width = buttonWidth, bg="ForestGreen", fg="white")
+        button = Button(window, text=name, command=openReminders, height = buttonHeight, width = buttonWidth, bg="ForestGreen", fg="white")
         button.place(x=0, y=0)
     elif name == "Weather":
         button = Button(window, text=name, command=openWeather, height = buttonHeight, width = buttonWidth, bg="DarkBlue", fg="white")
