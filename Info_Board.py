@@ -4,7 +4,7 @@ from tkinter import *
 import tkinter.messagebox
 import webbrowser
 from bs4 import BeautifulSoup
-# import requests
+import requests
 import math
 import time
 from datetime import datetime
@@ -275,40 +275,69 @@ def openReminders():
     createButton(remindersWindow, "Close")
     canvas.pack()
 
+
     createReminderLists(remindersWindow, canvas,
-                        readReminders("/Users/vitoleone1127/PersonalProjects/InfoBoard/reminders.txt"))
-    # movieReminders = readReminders("/home/pi/Desktop/InfoBoard/movieReminders.txt")
+                        readReminders("/home/pi/Desktop/InfoBoard/reminders.txt"), [], "/home/pi/Desktop/InfoBoard/reminders.txt", None)
 
 
-def createReminderLists(windowAbove, canvas, list):
-    remindersWindow = Toplevel(window)
-    remindersWindow.title("Remember Me!")
-    width, height = remindersWindow.winfo_screenwidth(), remindersWindow.winfo_screenheight()
-    remindersWindow.geometry('%dx%d+0+0' % (width, height))
-    canvas = Canvas(remindersWindow, width=width, height=height, bg="ForestGreen")
-    createButton(remindersWindow, "Close")
-    canvas.pack()
-    windowAbove.destroy()
 
-    y = height / 8
+def createReminderLists(window, canvas, list, buttonsList, fileName, entryBox):
+    try:
+        for button in buttonsList:
+            button.destroy()
+        entryBox.destroy()
+    except:
+        print()
+    canvas.delete("all")
+
+    y = height / 6
     i = 0
     tempList = list
+
+    entryBox = Entry(window)
+    canvas.create_window(width/2, 50, window = entryBox)
+
     for element in list:
         elementText = element.split("-")
-        label = Label(remindersWindow, text=elementText[0].strip(), anchor = 'w', fg = "white", bg = "ForestGreen",
+        label = Label(window, text=elementText[0].strip(), anchor = 'w', fg = "white", bg = "ForestGreen",
                       font=("Helvetica 25 bold"))
         canvas.create_window(200, y, window=label)
-        doneButton = Button(remindersWindow, text=elementText[1].strip(), justify=CENTER,
-                            command=lambda index=i: createReminderLists(remindersWindow, canvas, newList(index, tempList)),
-                            font=("Helvetica 15"), bg="red", fg="white")
+        doneButton = Button(window, text=elementText[1].strip(), justify=CENTER, width = 5,
+                            command=lambda index=i, currButtons = buttonsList: createReminderLists(window, canvas, newList(index, tempList), currButtons, fileName, entryBox),
+                            font=("Helvetica 25 bold"), bg="red", fg="white")
         doneButton.place(relx=.8, y=y, anchor=CENTER)
-        y += 50
+        buttonsList.append(doneButton)
+        y += 60
         i += 1
-    file = open("/Users/vitoleone1127/PersonalProjects/InfoBoard/reminders.txt", "w")
+
+    file = open(fileName, "w")
     file.truncate(0)
     for element in list:
         file.write(element)
     file.close()
+
+    def addToList(entryBox, list, fileName):
+        list.append(entryBox.get()+"\n")
+        file = open(fileName, "w")
+        file.truncate(0)
+        for element in list:
+            file.write(element)
+        file.close()
+        createReminderLists(window,canvas,list, buttonList, fileName, entryBox)
+
+    addButton = Button(window, text="Add", justify=CENTER, width=5, command=addToList(entryBox, list, fileName), bg="white", fg="ForestGreen")
+    addButton.place(x=width * (3/4), y=50, anchor=CENTER)
+    buttonsList.append(addButton)
+
+
+    remindersButton = Button(window, text="Reminders", justify=CENTER, width = 10,
+                            command=lambda currButtons = buttonsList: createReminderLists(window, canvas,
+                                readReminders("/home/pi/Desktop/InfoBoard/reminders.txt"), currButtons, "/home/pi/Desktop/InfoBoard/reminders.txt", entryBox), font=("Helvetica 25 bold"), bg="white", fg="ForestGreen")
+    movieButton = Button(window, text="Movies", justify=CENTER, width = 10,
+                            command=lambda currButtons = buttonsList: createReminderLists(window, canvas,
+                                readReminders("/home/pi/Desktop/InfoBoard/movieReminders.txt"), currButtons, "/home/pi/Desktop/InfoBoard/movieReminders.txt", entryBox), font=("Helvetica 25 bold"), bg="white", fg="ForestGreen")
+    remindersButton.place(relx=.9, rely= .05, anchor=CENTER)
+    movieButton.place(relx=.1, rely=.05, anchor=CENTER)
 
 def newList(index, list):
     list.pop(index)
