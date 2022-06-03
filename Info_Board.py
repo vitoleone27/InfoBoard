@@ -13,6 +13,8 @@ from tkinter import ttk
 import mysql.connector
 from mysql import connector
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 window = Tk()
 window.title("Info Board")
@@ -81,12 +83,14 @@ def openWeather():
     width, height = weatherWindow.winfo_screenwidth(), weatherWindow.winfo_screenheight()
     weatherWindow.geometry('%dx%d+0+0' % (width, height))
 
-    setLocation(weatherWindow, None, 'https://forecast.weather.gov/MapClick.php?lat=40.1552&lon=-75.2204')
+    setLocation(weatherWindow, None, 'https://forecast.weather.gov/MapClick.php?lat=40.1552&lon=-75.2204', None, None)
 
 
-def setLocation(window, canvas, website):
+def setLocation(window, canvas, website, entryBox, newLocationButton):
     try:
         canvas.destroy()
+        entryBox.destroy()
+        newLocationButton.destroy()
     except:
         print()
     canvas = Canvas(window, width=width, height=height, bg="DarkBlue")
@@ -122,12 +126,24 @@ def setLocation(window, canvas, website):
             createWeatherPanels(i, i % 2 != 0, days, soup, canvas, x, hazard)
             x += (width * (1 / 5))
 
-    newLocationButton = Button(window, text="Set Location", wraplength=100, justify=CENTER,
-                        command=lambda: setLocation(window, canvas, )font=("Helvetica 25 bold"), bg="white", fg="DarkBlue")
-    newLocationButton.place(relx=.6, rely=.1, anchor=CENTER)
-
     entryBox = Entry(window)
-    canvas.create_window(width/2, height/10, window = entryBox)
+    canvas.create_window(width / 2, height / 10, window=entryBox)
+    zipcode = entryBox.get()
+
+    driver = webdriver.Chrome(executable_path="C:\\chromedriver.exe")
+    driver.implicitly_wait(.5)
+    driver.get(website)
+
+    textBox = driver.find_element(By.ID, 'inputstring')
+    textBox.send_keys(zipcode)
+    textBox.send_keys(Keys.RETURN)
+
+    website = driver.current_url()
+
+    newLocationButton = Button(window, text="Set Location", wraplength=100, justify=CENTER,
+                        command=lambda: setLocation(window, canvas, website, entryBox, newLocationButton),
+                               font=("Helvetica 25 bold"), bg="white", fg="DarkBlue")
+    newLocationButton.place(relx=.6, rely=.1, anchor=CENTER)
 
 
 def openGames():
@@ -204,6 +220,7 @@ def openJokesAndRiddles():
                           command=lambda: addJoke(jokeLabel, deleteButton, entryBox),
                           font=("Helvetica 15"), bg="purple", fg="white")
     addJokeButton.place(relx=.5, rely=.5, anchor=CENTER)
+
 
 def addJoke(jokeLabel, deleteButton, entryBox):
     DB_NAME = 'JokesAndRiddles'
