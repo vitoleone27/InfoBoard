@@ -12,6 +12,7 @@ from tkinter.ttk import Style
 from tkinter import ttk
 import mysql.connector
 from mysql import connector
+from selenium import webdriver
 
 window = Tk()
 window.title("Info Board")
@@ -79,9 +80,18 @@ def openWeather():
     weatherWindow.title("Weather")
     width, height = weatherWindow.winfo_screenwidth(), weatherWindow.winfo_screenheight()
     weatherWindow.geometry('%dx%d+0+0' % (width, height))
-    canvas = Canvas(weatherWindow, width=width, height=height, bg="DarkBlue")
 
-    contents = requests.get('https://forecast.weather.gov/MapClick.php?lat=40.1552&lon=-75.2204')
+    setLocation(weatherWindow, None, 'https://forecast.weather.gov/MapClick.php?lat=40.1552&lon=-75.2204')
+
+
+def setLocation(window, canvas, website):
+    try:
+        canvas.destroy()
+    except:
+        print()
+    canvas = Canvas(window, width=width, height=height, bg="DarkBlue")
+
+    contents = requests.get(website)
     soup = BeautifulSoup(contents.text, 'html.parser')
 
     location = soup.find('div', class_='panel panel-default').find_next_sibling('div')
@@ -92,7 +102,7 @@ def openWeather():
                        fill="white", font=("Helvetica 60 bold underline"))
     canvas.create_text(width / 2, height / 8 + 100, text=currentTempDescription.get_text(), fill="white",
                        font=("Helvetica 30 italic"))
-    createButton(weatherWindow, "Close")
+    createButton(window, "Close")
     canvas.pack()
 
     days = soup.find_all('p', class_='period-name')
@@ -112,37 +122,16 @@ def openWeather():
             createWeatherPanels(i, i % 2 != 0, days, soup, canvas, x, hazard)
             x += (width * (1 / 5))
 
+    newLocationButton = Button(window, text="Set Location", wraplength=100, justify=CENTER,
+                        command=lambda: setLocation(window, canvas, )font=("Helvetica 25 bold"), bg="white", fg="DarkBlue")
+    newLocationButton.place(relx=.6, rely=.1, anchor=CENTER)
 
-def openSports():
-    sportsWindow = Toplevel(window)
-    sportsWindow.title("Todays Lineup")
-    width, height = sportsWindow.winfo_screenwidth(), sportsWindow.winfo_screenheight()
-    sportsWindow.geometry('%dx%d+0+0' % (width, height))
-    canvas = Canvas(sportsWindow, width=width, height=height, bg="Red")
+    entryBox = Entry(window)
+    canvas.create_window(width/2, height/10, window = entryBox)
 
-    createButton(sportsWindow, "Close")
-    canvas.pack()
 
-    contents = requests.get('https://www.si.com/scoreboard')
-    soup = BeautifulSoup(contents.text, 'html5lib')
-
-    games = soup.find('div', title='m-scoreboard--container').find_all('phoenix-scoreboard-league')
-    leagueName = soup.find_all('span', class_='event__title--name')
-    print(len(leagueName), len(games))
-    x = 100
-    i = 0
-    for game in games:
-        leagueName = soup.find_all('div', class_='event--section').find('span', class_='event__title--type').get_text()
-        result = game.find('div', class_='event__stage--block').get_text()
-        homeTeam = game.find('div', class_='event__participant event__participant--home').get_text()
-        homeTeamScore = game.find('div', class_='event__score event__score--home').get_text()
-        awayTeam = game.find('div', class_='event__participant event__participant--away').get_text()
-        awayTeamScore = game.find('div', class_='event__score event__score--away').get_text()
-        print(leagueName + " " + homeTeam)
-        label = Label(canvas, text=leagueName() + "\r" + homeTeam, width=10, height=10, anchor="n", fg="blue",
-                      bg="white", font=("Helvetica 25 bold"))
-        canvas.create_window(x, height / 2, window=label)
-        x += 100
+def openGames():
+    print()
 
 
 def connectToMySQL():
@@ -182,8 +171,9 @@ def openJokesAndRiddles():
     cursor.execute("SELECT body, id FROM Jokes ORDER BY RAND() LIMIT 1")
     joke = cursor.fetchone()
     jokeId = joke[1]
-    print(jokeId)
     joke = joke[0]
+
+
 
     jokeLabel = Label(canvas, text=joke, fg="black", bg="yellow", font=("Times 45 bold"), wraplength=700,
                       justify=CENTER)
@@ -207,6 +197,32 @@ def openJokesAndRiddles():
                           font=("Helvetica 15"), bg="cyan", fg="black")
     riddleButton.place(relx=.1, rely=.5, anchor=CENTER)
 
+    entryBox = Entry(JokesAndRiddlesWindow)
+    canvas.create_window(width/2, height * .75, window = entryBox)
+
+    addJokeButton = Button(JokesAndRiddlesWindow, text="Add Joke", wraplength=60, justify=CENTER,
+                          command=lambda: addJoke(jokeLabel, deleteButton, entryBox),
+                          font=("Helvetica 15"), bg="purple", fg="white")
+    addJokeButton.place(relx=.5, rely=.5, anchor=CENTER)
+
+def addJoke(jokeLabel, deleteButton, entryBox):
+    DB_NAME = 'JokesAndRiddles'
+    cursor, connection = connectToMySQL()
+
+    cursor.execute("USE {}".format(DB_NAME))
+    cursor.execute("SELECT MAX(id) FROM Jokes")
+    maxId = cursor.fetchone()
+    maxId = maxId[0] + 1
+    cursor.execute("INSERT INTO Jokes VALUES(\"{}\", \"Original\", {}, \"?\")".format(entryBox.get(), maxId))
+    connection.commit()
+
+    cursor.execute("SELECT body, id FROM Jokes WHERE id = {}".format(maxId))
+    joke = cursor.fetchone()
+    jokeId = joke[1]
+    joke = joke[0]
+    jokeLabel.configure(text=joke)
+    deleteButton.configure(command=lambda: deleteJoke(jokeLabel, jokeId, deleteButton))
+    entryBox.delete(0,END)
 
 def newJoke(jokeLabel, deleteButton):
     DB_NAME = 'JokesAndRiddles'
@@ -279,7 +295,15 @@ def openReminders():
     createReminderLists(remindersWindow, canvas,
                         readReminders("/home/pi/Desktop/InfoBoard/reminders.txt"), [], "/home/pi/Desktop/InfoBoard/reminders.txt", None)
 
-
+def addToList(window, canvas, buttonsList, entryBox, list, fileName):
+    if "-" in entryBox.get():
+        list.append(entryBox.get()+"\n")
+    file = open(fileName, "w")
+    file.truncate(0)
+    for element in list:
+        file.write(element)
+    file.close()
+    createReminderLists(window,canvas,list, buttonsList, fileName, entryBox)
 
 def createReminderLists(window, canvas, list, buttonsList, fileName, entryBox):
     try:
@@ -316,16 +340,8 @@ def createReminderLists(window, canvas, list, buttonsList, fileName, entryBox):
         file.write(element)
     file.close()
 
-    def addToList(entryBox, list, fileName):
-        list.append(entryBox.get()+"\n")
-        file = open(fileName, "w")
-        file.truncate(0)
-        for element in list:
-            file.write(element)
-        file.close()
-        createReminderLists(window,canvas,list, buttonList, fileName, entryBox)
 
-    addButton = Button(window, text="Add", justify=CENTER, width=5, command=addToList(entryBox, list, fileName), bg="white", fg="ForestGreen")
+    addButton = Button(window, text="Add", justify=CENTER, width=5, command=lambda: addToList(window, canvas, buttonsList, entryBox, list, fileName), bg="white", fg="ForestGreen")
     addButton.place(x=width * (3/4), y=50, anchor=CENTER)
     buttonsList.append(addButton)
 
@@ -354,7 +370,7 @@ def createAllButtons():
     createButton(window, "Reminders")
     createButton(window, "Weather")
     createButton(window, "Jokes/Riddles")
-    createButton(window, "Sports")
+    createButton(window, "Games")
     createButton(window, "Close")
 
 
@@ -375,8 +391,8 @@ def createButton(window, name):
         button = Button(window, text=name, command=openJokesAndRiddles, height=buttonHeight, width=buttonWidth,
                         bg="yellow", fg="black")
         button.place(relx=.75, y=0)
-    elif name == "Sports":
-        button = Button(window, text=name, command=openSports, height=buttonHeight, width=buttonWidth, bg="magenta",
+    elif name == "Games":
+        button = Button(window, text=name, command=openGames, height=buttonHeight, width=buttonWidth, bg="magenta",
                         fg="white")
         button.place(relx=.75, rely=.5)
     else:
@@ -387,7 +403,7 @@ def createButton(window, name):
 
 createAllButtons()
 
-
+##need to make a label then just call "tieRefresh right after"
 def timeRefresh():
     date = datetime.now()
     currentTime = time.strftime("%I:%M:%S %p", time.localtime())
