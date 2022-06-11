@@ -154,7 +154,6 @@ def changeLocation(window, canvas, website, entryBox, newLocationButton):
     selection = driver.find_element(By.CLASS_NAME, "autocomplete-suggestion")
     selection.click()
 
-    button = driver.find_element(By.ID,'btnSearch')
 
     website = driver.current_url
     setLocation(window, canvas, website, entryBox, newLocationButton)
@@ -170,17 +169,22 @@ def openGames(value):
     elif value == 3:
         setUpPong()
 
+
 def setUpSudoku():
     playSudoku()
+
 
 def playSudoku():
     print("Sudoku")
 
+
 def setUpFlappyBird():
     playFlappyBird()
 
+
 def playFlappyBird():
     print("Flappy Bird")
+
 
 def setUpPong():
     pongWindow = Toplevel(window)
@@ -190,94 +194,175 @@ def setUpPong():
     canvas = Canvas(pongWindow, width=width, height=height, bg="Magenta")
     canvas.pack()
 
-    entryBoxLeft = Entry(canvas, font= ("Helvetica 20"))
+    entryBoxLeft = Entry(canvas, font=("Helvetica 20"))
     entryBoxLeft.insert(0, "Player 1")
     entryBoxLeft.bind("<FocusIn>", lambda event: entryBoxLeft.delete(0, "end"))
-    canvas.create_window(width * .4, height * .5, window = entryBoxLeft)
+    canvas.create_window(width * .4, height * .5, window=entryBoxLeft)
 
-    entryBoxRight = Entry(canvas, font = ("Helvetica 20"))
+    entryBoxRight = Entry(canvas, font=("Helvetica 20"))
     entryBoxRight.insert(0, "Player 2")
     entryBoxRight.bind("<FocusIn>", lambda event: entryBoxRight.delete(0, "end"))
-    canvas.create_window(width * .6, height * .5, window = entryBoxRight)
+    canvas.create_window(width * .6, height * .5, window=entryBoxRight)
+
+    options = ["Purple","St. Rose","Jokes","LaSalle"]
+
+    choice = StringVar()
+    choice.set("St. Rose")
+    themeOptions = OptionMenu(pongWindow, choice, *options)
+    themeOptions.place(relx = .5, rely = .4, anchor = CENTER)
+
 
     var = IntVar()
-    easy = Radiobutton(pongWindow, text = 'Easy', variable = var, width = 10,
-            command = lambda: startButton.configure(command = lambda: playPong(entryBoxLeft.get(), entryBoxRight.get(), var.get())),
-            value = 1, bg = "white", fg = "magenta", font = ("Helvetica 20 bold"), selectcolor = 'white', activeforeground = 'magenta')
-    easy.place(relx = .25, rely = .25, anchor=CENTER)
-    medium = Radiobutton(pongWindow, text = 'Medium', variable = var, width = 10,
-            command = lambda: startButton.configure(command = lambda: playPong(entryBoxLeft.get(), entryBoxRight.get(), var.get())),
-            value = 2, bg = "white", fg = "magenta", font = ("Helvetica 20 bold"), selectcolor = 'white', activeforeground = 'magenta')
-    medium.place(relx = .5, rely = .25, anchor=CENTER)
-    hard = Radiobutton(pongWindow, text = 'Hard', variable = var, width = 10,
-            command = lambda: startButton.configure(command = lambda: playPong(entryBoxLeft.get(), entryBoxRight.get(), var.get())),
-            value = 3, bg = "white", fg = "magenta", font = ("Helvetica 20 bold"), selectcolor = 'white', activeforeground = 'magenta')
-    hard.place(relx = .75, rely = .25, anchor = CENTER)
+    easy = Radiobutton(pongWindow, text='Easy', variable=var, width=10,
+                       command=lambda: startButton.configure(
+                           command=lambda: playPong(entryBoxLeft.get(), entryBoxRight.get(), var.get(),
+                            choice.get())),
+                       value=1, bg="white", fg="magenta", font=("Helvetica 20 bold"), selectcolor='white',
+                       activeforeground='magenta')
+    easy.place(relx=.25, rely=.25, anchor=CENTER)
+    medium = Radiobutton(pongWindow, text='Medium', variable=var, width=10,
+                         command=lambda: startButton.configure(
+                             command=lambda: playPong(entryBoxLeft.get(), entryBoxRight.get(), var.get(), choice.get())),
+                         value=2, bg="white", fg="magenta", font=("Helvetica 20 bold"), selectcolor='white',
+                         activeforeground='magenta')
+    medium.place(relx=.5, rely=.25, anchor=CENTER)
+    medium.select()
+    hard = Radiobutton(pongWindow, text='Hard', variable=var, width=10,
+                       command=lambda: startButton.configure(
+                           command=lambda: playPong(entryBoxLeft.get(), entryBoxRight.get(), var.get(), choice.get())),
+                       value=3, bg="white", fg="magenta", font=("Helvetica 20 bold"), selectcolor='white',
+                       activeforeground='magenta')
+    hard.place(relx=.75, rely=.25, anchor=CENTER)
 
-    startButton = Button(canvas, text = "START", font = ("Helvetica 30"),
-            command = lambda: playPong(entryBoxLeft.get(), entryBoxRight.get(), 1))
-    startButton.place(relx = .5, rely = .6, anchor = CENTER)
+    startButton = Button(canvas, text="START", font=("Helvetica 30"),
+                         command=lambda: playPong(entryBoxLeft.get(), entryBoxRight.get(), 2, choice.get()))
+    startButton.place(relx=.5, rely=.6, anchor=CENTER)
 
     createButton(pongWindow, "Close")
 
-def playPong(leftPlayer, rightPlayer, difficulty):
+def playPong(leftPlayer, rightPlayer, difficulty, theme):
+    global paused
+    paused = False
+    global gameOn
+    gameOn = False
+    if theme == "Purple":
+        backgroundColor = "magenta"
+        boardColor = "yellow"
+        scoreboardColor = "cyan"
+        paddleColor = "yellow"
+        ballColor = "cyan"
+        gameOverColor = "black"
+    elif theme == "St. Rose":
+        backgroundColor = "ForestGreen"
+        boardColor = "white"
+        scoreboardColor = "gold"
+        paddleColor = "gold"
+        ballColor = "red"
+        gameOverColor = "white"
+    elif theme == "Jokes":
+        backgroundColor = "yellow"
+        boardColor = "cyan"
+        scoreboardColor = "black"
+        paddleColor = "cyan"
+        ballColor = "black"
+        gameOverColor = "black"
+    else:
+        backgroundColor = "DarkBlue"
+        boardColor = "white"
+        scoreboardColor = "white"
+        paddleColor = "gold"
+        ballColor = "gold"
+        gameOverColor = "white"
 
     if difficulty == 1:
         stickSpeed = 20
         stickWidth = 8
-        leftStartDistance = -500
-        rightStartDistance = 500
+        leftStartDistance = -300
+        rightStartDistance = 300
+        boardHeight = 300
+        boardWidth = rightStartDistance + 100
     elif difficulty == 2:
-        stickSpeed = 20
+        stickSpeed = 15
         stickWidth = 6
-        leftStartDistance = -400
-        rightStartDistance = 400
+        leftStartDistance = -200
+        rightStartDistance = 200
+        boardHeight = 280
+        boardWidth = rightStartDistance + 100
     elif difficulty == 3:
-        stickSpeed = 30
-        stickWidth = 6
-        leftStartDistance = -400
-        rightStartDistance = 400
+        stickSpeed = 10
+        stickWidth = 5
+        leftStartDistance = -100
+        rightStartDistance = 100
+        boardHeight = 250
+        boardWidth = rightStartDistance + 100
+
     screen = turtle.Screen()
-    turtle.TurtleScreen._RUNNING=True
+    turtle.TurtleScreen._RUNNING = True
     screen.title("Pong")
-    screen.bgcolor("magenta")
-    screen.setup(width=width, height = height)
+    screen.bgcolor(backgroundColor)
+    screen.setup(width=width, height=height)
+    board = turtle.Turtle()
+    board.speed(0)
+    board.color(boardColor)
+    board.goto(0, (boardHeight * -1) - 10)
+    board.goto(boardWidth * -1, (boardHeight * -1) - 10)
+    board.goto(boardWidth * -1, boardHeight + 10)
+    board.goto(boardWidth, boardHeight + 10)
+    board.goto(boardWidth, (boardHeight * -1) - 10)
+    board.goto(0, (boardHeight * -1) - 10)
+    board.goto(0, boardHeight + 10)
+    board.hideturtle()
 
     leftPad = turtle.Turtle()
     leftPad.speed(0)
     leftPad.shape("square")
-    leftPad.color("yellow")
+    leftPad.color(paddleColor)
     leftPad.shapesize(stretch_wid=stickWidth, stretch_len=2)
     leftPad.penup()
-    leftPad.goto(leftStartDistance,0)
+    leftPad.goto(leftStartDistance, 0)
 
     rightPad = turtle.Turtle()
     rightPad.speed(0)
     rightPad.shape("square")
-    rightPad.color("yellow")
+    rightPad.color(paddleColor)
     rightPad.shapesize(stretch_wid=stickWidth, stretch_len=2)
     rightPad.penup()
-    rightPad.goto(rightStartDistance,0)
+    rightPad.goto(rightStartDistance,-120)
 
     ball = turtle.Turtle()
     ball.speed(40)
     ball.shape("circle")
-    ball.color("cyan")
+    ball.color(ballColor)
     ball.penup()
     ball.goto(0,0)
-    ball.dx = 5
-    ball.dy = -5
+    ball.dx = 10
+    ball.dy = -10
 
     leftScore = 0
     rightScore = 0
 
     score = turtle.Turtle()
     score.speed(0)
-    score.color("cyan")
+    score.color(scoreboardColor)
     score.penup()
     score.hideturtle()
-    score.goto(0, 300)
-    score.write("{}: 0      {}: 0".format(leftPlayer,rightPlayer), align='center',font=("Courier", 24, "normal"))
+    score.goto(0, 350)
+    score.write("{}: 0      {}: 0".format(leftPlayer,rightPlayer), align='center', font=("Courier", 30, "bold"))
+
+    help = turtle.Turtle()
+    help.color(boardColor)
+    help.penup()
+    help.hideturtle()
+    help.goto(rightStartDistance + 250, 75)
+    help.write("Press \'p\' to pause", align='center', font=("Courier", 20, "normal"))
+    help.goto(rightStartDistance + 250, 25)
+    help.write("New Game 10 Seconds", align='center', font=("Courier", 20, "normal"))
+    help.goto(rightStartDistance + 250, 0)
+    help.write("After \'Game Over\'", align='center', font=("Courier", 20, "normal"))
+    help.goto(rightStartDistance + 250, -50)
+    help.write("Highest Scoring Games and", align='center', font=("Courier", 20, "normal"))
+    help.goto(rightStartDistance + 250, -75)
+    help.write("Biggest Wins Get Ranked", align='center', font=("Courier", 20, "normal"))
 
     def leftUp():
         y = leftPad.ycor()
@@ -299,46 +384,111 @@ def playPong(leftPlayer, rightPlayer, difficulty):
         y -= stickSpeed
         rightPad.sety(y)
 
-    screen.listen()
+    def pause():
+        global paused
+        if gameOn == True:
+            paused = True
+            pauseMenu = Tk()
+            pauseMenu.title("Paused")
+            width, height = pauseMenu.winfo_screenwidth(), pauseMenu.winfo_screenheight()
+            pauseMenu.geometry('%dx%d+%d+%d' % (width / 2, height / 2, width/4, height/4))
+            canvas = Canvas(pauseMenu, width=width / 2, height=height / 2, bg="Cyan")
+            canvas.pack()
+            resumeButton = Button(pauseMenu, text="Resume", justify=CENTER,
+                                  command=lambda: unpause(pauseMenu), font=("Helvetica 20 bold"), bg="magenta", fg="yellow")
+            resumeButton.place(relx=.5, rely=.5, anchor=CENTER)
+
+            def quit(screen, pauseMenu):
+                pauseMenu.destroy()
+                screen.bye()
+
+            quitButton = Button(pauseMenu, text="I'm a Quitter", command=lambda: quit(screen, pauseMenu), font=("Helvetica 15"), bg="red",
+                            fg="white")
+            quitButton.place(relx=.5, rely=.75, anchor=CENTER)
+            pausing()
+
+    def pausing():
+        if paused:
+            turtle.ontimer(pausing, 250)
+
+    def unpause(pauseMenu):
+        pauseMenu.destroy()
+        global paused
+        paused = False
+
     screen.onkeypress(leftUp, "q")
     screen.onkeypress(leftDown, "z")
     screen.onkeypress(rightUp, "Up")
     screen.onkeypress(rightDown, "Down")
+    screen.onkeypress(pause, "p")
+    screen.onkeypress(unpause, "u")
+    screen.listen()
+    while ((leftScore < 3 and rightScore < 3) or (leftScore >= 3 and (leftScore - rightScore) < 2) or (
+            rightScore >= 3 and (rightScore - leftScore) < 2)):
+        gameOn = True
+        if not paused:
+            screen.update()
+            ball.setx(ball.xcor() + ball.dx)
+            ball.sety(ball.ycor() + ball.dy)
 
-    while (leftScore < 7 and rightScore < 7) or (leftScore >= 7 and (leftScore - rightScore) < 2) or (rightScore >= 7 and (rightScore - leftScore) < 2):
+            if ball.ycor() > boardHeight:
+                ball.sety(boardHeight)
+                ball.dy *= -1
+            if ball.ycor() < boardHeight*-1:
+                ball.sety(boardHeight*-1)
+                ball.dy *= -1
+            if ball.xcor() > rightStartDistance + 100:
+                ball.goto(0, 0)
+                leftScore += 1
+                ball.dy *= -1
+                leftPad.goto(leftStartDistance,0)
+                if ball.dy < 0:
+                    rightPad.goto(rightStartDistance, -120)
+                else:
+                    rightPad.goto(rightStartDistance, 120)
+                score.clear()
+                score.write("{}: {}      {}: {}".format(leftPlayer, leftScore, rightPlayer, rightScore), align='center',
+                            font=('Courier', 30, "bold"))
 
-        screen.update()
-        ball.setx(ball.xcor() + ball.dx)
-        ball.sety(ball.ycor() + ball.dy)
+            if ball.xcor() < leftStartDistance - 100:
+                ball.goto(0, 0)
+                rightScore += 1
+                ball.dy *= -1
+                rightPad.goto(rightStartDistance, 0)
+                if ball.dy < 0:
+                    leftPad.goto(leftStartDistance, -120)
+                else:
+                    leftPad.goto(leftStartDistance, 120)
+                score.clear()
+                score.write("{}: {}      {}: {}".format(leftPlayer, leftScore, rightPlayer, rightScore), align='center',
+                            font=('Courier', 30, "bold"))
 
-        if ball.ycor() > 280:
-            ball.sety(280)
-            ball.dy *= -1
-        if ball.ycor() < -280:
-            ball.sety(-280)
-            ball.dy *= -1
-        if ball.xcor() > rightStartDistance +100:
-            ball.goto(0,0)
-            leftScore += 1
-            ball.dy *= -1
-            score.clear()
-            score.write("{}: {}      {}: {}".format(leftPlayer, leftScore, rightPlayer, rightScore), align='center', font=('Courier', 24, "normal"))
+            if (ball.xcor() > rightStartDistance - 50 and ball.xcor() < rightStartDistance - 20) and (
+                    ball.ycor() < rightPad.ycor() + stickWidth * 10 and ball.ycor() > rightPad.ycor() - stickWidth * 10):
+                ball.setx(rightStartDistance - 50)
+                ball.dx *= -1
 
-        if ball.xcor() < leftStartDistance - 100:
-            ball.goto(0,0)
-            rightScore += 1
-            ball.dy *= -1
-            score.clear()
-            score.write("{}: {}      {}: {}".format(leftPlayer, leftScore, rightPlayer, rightScore), align='center', font=('Courier', 24, "normal"))
-
-        if (ball.xcor() > rightStartDistance - 40 and ball.xcor() < rightStartDistance - 30) and (ball.ycor() < rightPad.ycor() + 60 and ball.ycor() > rightPad.ycor()-60):
-            ball.setx(rightStartDistance -40)
-            ball.dx *= -1
-
-        if (ball.xcor() < leftStartDistance + 40 and ball.xcor() > leftStartDistance + 30) and (ball.ycor() < leftPad.ycor() + 60 and ball.ycor() > leftPad.ycor()-60):
-            ball.setx(leftStartDistance + 40)
-            ball.dx *= -1
-    turtle.TurtleScreen._RUNNING=True
+            if (ball.xcor() < leftStartDistance + 50 and ball.xcor() > leftStartDistance + 20) and (
+                    ball.ycor() < leftPad.ycor() + stickWidth * 10 and ball.ycor() > leftPad.ycor() - stickWidth * 10):
+                ball.setx(leftStartDistance + 50)
+                ball.dx *= -1
+        else:
+            screen.update()
+    gameOn = False
+    paused = False
+    gameOver = turtle.Turtle()
+    gameOver.goto(0,0)
+    gameOver.color(gameOverColor)
+    if leftScore > rightScore:
+        gameOver.write("GAME OVER:", align='center', font=('Courier', 50, "bold"))
+        gameOver.goto(0, -50)
+        gameOver.write("{} WINS!".format(leftPlayer), align='center', font=('Courier', 50, "bold"))
+    else:
+        gameOver.write("GAME OVER:", align='center', font=('Courier', 50, "bold"))
+        gameOver.goto(0, -50)
+        gameOver.write("{} WINS!".format(rightPlayer), align='center', font=('Courier', 50, "bold"))
+    gameOver.hideturtle()
+    screen.ontimer(screen.bye, 10000)
     screen.exitonclick()
 
 
@@ -406,26 +556,28 @@ def openJokesAndRiddles():
     entryBox = Entry(JokesAndRiddlesWindow, font=("Helvetica 20"))
     entryBox.insert(0, "Format: Joke")
     entryBox.bind("<FocusIn>", lambda event: entryBox.delete(0, "end"))
-    canvas.create_window(width * .8, height * .5, window = entryBox)
+    canvas.create_window(width * .8, height * .5, window=entryBox)
 
     addJokeButton = Button(JokesAndRiddlesWindow, text="Add Joke", wraplength=60, justify=CENTER,
-                          command=lambda: addJoke(jokeLabel, deleteButton, entryBox),
-                          font=("Helvetica 15"), bg="purple", fg="white")
+                           command=lambda: addJoke(jokeLabel, deleteButton, entryBox),
+                           font=("Helvetica 15"), bg="purple", fg="white")
     addJokeButton.place(relx=.65, rely=.5, anchor=CENTER)
 
     entryBoxRiddle = Entry(JokesAndRiddlesWindow, font=("Helvetica 20"))
     entryBoxRiddle.insert(0, "Format: Riddle - Answer")
     entryBoxRiddle.bind("<FocusIn>", lambda event: entryBoxRiddle.delete(0, "end"))
-    canvas.create_window(width * .8, height * .75, window = entryBoxRiddle)
+    canvas.create_window(width * .8, height * .75, window=entryBoxRiddle)
 
     deleteRiddleButton = Button(JokesAndRiddlesWindow, text="X", justify=CENTER,
-                          command=lambda: deleteRiddle(riddleLabel, answerLabel, riddle, answerButton, deleteButton), font=("Helvetica 20 bold"),
-                          bg="Red", fg="black")
+                                command=lambda: deleteRiddle(riddleLabel, answerLabel, riddle, answerButton,
+                                                             deleteButton), font=("Helvetica 20 bold"),
+                                bg="Red", fg="black")
     deleteRiddleButton.place(relx=.45, rely=.1, anchor=CENTER)
 
     addRiddleButton = Button(JokesAndRiddlesWindow, text="Add Riddle", wraplength=75, justify=CENTER,
-                          command=lambda: addRiddle(riddleLabel, answerLabel, answerButton, deleteRiddleButton, entryBoxRiddle),
-                          font=("Helvetica 15"), bg="purple", fg="white")
+                             command=lambda: addRiddle(riddleLabel, answerLabel, answerButton, deleteRiddleButton,
+                                                       entryBoxRiddle),
+                             font=("Helvetica 15"), bg="purple", fg="white")
     addRiddleButton.place(relx=.65, rely=.75, anchor=CENTER)
 
 
@@ -442,14 +594,15 @@ def addRiddle(riddleLabel, answerLabel, answerButton, deleteRiddleButton, entryB
     cursor.execute("INSERT INTO Riddles VALUES(\"{}\", \"{}\")".format(element[0], element[1]))
     connection.commit()
 
-
     riddleLabel.configure(text=riddle)
     answerLabel.configure(text='')
     answerButton.configure(command=lambda: showAnswer(riddle, answerLabel))
-    deleteRiddleButton.configure(command= lambda: deleteRiddle(riddleLabel, answerLabel, riddle, answerButton, deleteRiddleButton))
-    entryBox.delete(0,END)
+    deleteRiddleButton.configure(
+        command=lambda: deleteRiddle(riddleLabel, answerLabel, riddle, answerButton, deleteRiddleButton))
+    entryBox.delete(0, END)
     entryBox.insert(0, "Format: Riddle - Answer")
     entryBox.bind("<FocusIn>", lambda event: entryBox.delete(0, "end"))
+
 
 def addJoke(jokeLabel, deleteButton, entryBox):
     DB_NAME = 'JokesAndRiddles'
@@ -468,9 +621,10 @@ def addJoke(jokeLabel, deleteButton, entryBox):
     joke = joke[0]
     jokeLabel.configure(text=joke)
     deleteButton.configure(command=lambda: deleteJoke(jokeLabel, jokeId, deleteButton))
-    entryBox.delete(0,END)
+    entryBox.delete(0, END)
     entryBox.insert(0, "Format: Joke")
     entryBox.bind("<FocusIn>", lambda event: entryBox.delete(0, "end"))
+
 
 def newJoke(jokeLabel, deleteButton):
     DB_NAME = 'JokesAndRiddles'
@@ -484,6 +638,7 @@ def newJoke(jokeLabel, deleteButton):
     joke = joke[0]
     jokeLabel.configure(text=joke)
     deleteButton.configure(command=lambda: deleteJoke(jokeLabel, jokeId, deleteButton))
+
 
 def deleteRiddle(riddleLabel, answerLabel, riddle, answerButton, deleteButton):
     DB_NAME = 'JokesAndRiddles'
@@ -501,8 +656,9 @@ def deleteRiddle(riddleLabel, answerLabel, riddle, answerButton, deleteButton):
     answer = element[1]
     riddleLabel.configure(text=riddle)
     answerLabel.configure(text='')
-    answerButton.configure(command= lambda: showAnswer(riddle, answerLabel))
+    answerButton.configure(command=lambda: showAnswer(riddle, answerLabel))
     deleteButton.configure(command=lambda: deleteRiddle(riddleLabel, answerLabel, riddle, answerButton, deleteButton))
+
 
 def deleteJoke(jokeLabel, jokeId, deleteButton):
     DB_NAME = 'JokesAndRiddles'
@@ -557,19 +713,21 @@ def openReminders():
     createButton(remindersWindow, "Close")
     canvas.pack()
 
-
     createReminderLists(remindersWindow, canvas,
-                        readReminders("/home/pi/Desktop/InfoBoard/reminders.txt"), [], "/home/pi/Desktop/InfoBoard/reminders.txt", None)
+                        readReminders("/home/pi/Desktop/InfoBoard/reminders.txt"), [],
+                        "/home/pi/Desktop/InfoBoard/reminders.txt", None)
+
 
 def addToList(window, canvas, buttonsList, entryBox, list, fileName):
     if "-" in entryBox.get():
-        list.append(entryBox.get()+"\n")
+        list.append(entryBox.get() + "\n")
     file = open(fileName, "w")
     file.truncate(0)
     for element in list:
         file.write(element)
     file.close()
-    createReminderLists(window,canvas,list, buttonsList, fileName, entryBox)
+    createReminderLists(window, canvas, list, buttonsList, fileName, entryBox)
+
 
 def createReminderLists(window, canvas, list, buttonsList, fileName, entryBox):
     try:
@@ -584,18 +742,22 @@ def createReminderLists(window, canvas, list, buttonsList, fileName, entryBox):
     i = 0
     tempList = list
 
-    entryBox = Entry(window, font=("Helvetica 25"), bg = "ForestGreen", fg = "gold")
+    entryBox = Entry(window, font=("Helvetica 25"), bg="ForestGreen", fg="gold")
     entryBox.insert(0, "Format: reminder - d/m/y")
     entryBox.bind("<FocusIn>", lambda event: entryBox.delete(0, "end"))
-    canvas.create_window(width/2, 50, window = entryBox)
+    canvas.create_window(width / 2, 50, window=entryBox)
 
     for element in list:
         elementText = element.split("-")
-        label = Label(window, text=elementText[0].strip(), fg = "gold", bg = "ForestGreen",
+        label = Label(window, text=elementText[0].strip(), fg="gold", bg="ForestGreen",
                       font=("Helvetica 25 bold"))
-        canvas.create_window(100, y, anchor = 'w', window=label)
-        doneButton = Button(window, text=elementText[1].strip(), justify=CENTER, width = 5,
-                            command=lambda index=i, currButtons = buttonsList: createReminderLists(window, canvas, newList(index, tempList), currButtons, fileName, entryBox),
+        canvas.create_window(100, y, anchor='w', window=label)
+        doneButton = Button(window, text=elementText[1].strip(), justify=CENTER, width=5,
+                            command=lambda index=i, currButtons=buttonsList: createReminderLists(window, canvas,
+                                                                                                 newList(index,
+                                                                                                         tempList),
+                                                                                                 currButtons, fileName,
+                                                                                                 entryBox),
                             font=("Helvetica 25 bold"), bg="Gold", fg="ForestGreen")
         doneButton.place(relx=.9, y=y, anchor=CENTER)
         buttonsList.append(doneButton)
@@ -608,22 +770,31 @@ def createReminderLists(window, canvas, list, buttonsList, fileName, entryBox):
         file.write(element)
     file.close()
 
-
     addButton = Button(window, text="Add", justify=CENTER, width=5,
-        command=lambda: addToList(window, canvas, buttonsList, entryBox, list, fileName),
-        bg="gold", fg="ForestGreen", font=("Helvetica 25 bold"))
-    addButton.place(x=width *.65, y=50, anchor=CENTER)
+                       command=lambda: addToList(window, canvas, buttonsList, entryBox, list, fileName),
+                       bg="gold", fg="ForestGreen", font=("Helvetica 25 bold"))
+    addButton.place(x=width * .65, y=50, anchor=CENTER)
     buttonsList.append(addButton)
 
-
-    remindersButton = Button(window, text="Reminders", justify=CENTER, width = 10,
-                            command=lambda currButtons = buttonsList: createReminderLists(window, canvas,
-                                readReminders("/home/pi/Desktop/InfoBoard/reminders.txt"), currButtons, "/home/pi/Desktop/InfoBoard/reminders.txt", entryBox), font=("Helvetica 25 bold"), bg="gold", fg="ForestGreen")
-    movieButton = Button(window, text="Movies", justify=CENTER, width = 10,
-                            command=lambda currButtons = buttonsList: createReminderLists(window, canvas,
-                                readReminders("/home/pi/Desktop/InfoBoard/movieReminders.txt"), currButtons, "/home/pi/Desktop/InfoBoard/movieReminders.txt", entryBox), font=("Helvetica 25 bold"), bg="gold", fg="ForestGreen")
-    remindersButton.place(relx=.9, rely= .05, anchor=CENTER)
+    remindersButton = Button(window, text="Reminders", justify=CENTER, width=10,
+                             command=lambda currButtons=buttonsList: createReminderLists(window, canvas,
+                                                                                         readReminders(
+                                                                                             "/home/pi/Desktop/InfoBoard/reminders.txt"),
+                                                                                         currButtons,
+                                                                                         "/home/pi/Desktop/InfoBoard/reminders.txt",
+                                                                                         entryBox),
+                             font=("Helvetica 25 bold"), bg="gold", fg="ForestGreen")
+    movieButton = Button(window, text="Movies", justify=CENTER, width=10,
+                         command=lambda currButtons=buttonsList: createReminderLists(window, canvas,
+                                                                                     readReminders(
+                                                                                         "/home/pi/Desktop/InfoBoard/movieReminders.txt"),
+                                                                                     currButtons,
+                                                                                     "/home/pi/Desktop/InfoBoard/movieReminders.txt",
+                                                                                     entryBox),
+                         font=("Helvetica 25 bold"), bg="gold", fg="ForestGreen")
+    remindersButton.place(relx=.9, rely=.05, anchor=CENTER)
     movieButton.place(relx=.1, rely=.05, anchor=CENTER)
+
 
 def newList(index, list):
     list.pop(index)
@@ -651,15 +822,15 @@ def createButton(window, name):
 
     if name == "Reminders":
         button = Button(window, text=name, command=openReminders, height=buttonHeight, width=buttonWidth,
-                        bg="ForestGreen", fg="white", activeforeground = 'ForestGreen')
+                        bg="ForestGreen", fg="white", activeforeground='ForestGreen')
         button.place(x=0, y=0)
     elif name == "Weather":
         button = Button(window, text=name, command=openWeather, height=buttonHeight, width=buttonWidth, bg="DarkBlue",
-                        fg="white", activeforeground = 'DarkBlue')
+                        fg="white", activeforeground='DarkBlue')
         button.place(x=0, rely=.5)
     elif name == "Jokes/Riddles":
         button = Button(window, text=name, command=openJokesAndRiddles, height=buttonHeight, width=buttonWidth,
-                        bg="yellow", fg="black", activeforeground = 'gold1')
+                        bg="yellow", fg="black", activeforeground='gold1')
         button.place(relx=.75, y=0)
     else:
         button = Button(window, text=name, command=window.destroy, width=int(buttonWidth / 2), font=("Helvetica 15"),
@@ -669,23 +840,25 @@ def createButton(window, name):
 
 createAllButtons()
 
-gameButton = Button(window, text="Games", command=lambda: openGames(0), width = int(width * .02604167),
-        height = int(height * .02314815), bg="magenta", fg="white", activeforeground = 'magenta')
+gameButton = Button(window, text="Games", command=lambda: openGames(0), width=int(width * .02604167),
+                    height=int(height * .02314815), bg="magenta", fg="white", activeforeground='magenta')
 gameButton.place(relx=.75, rely=.5)
 
+
 def setGame(button, game, gameButton):
-    gameButton.configure(command = lambda: openGames(game))
+    gameButton.configure(command=lambda: openGames(game))
+
 
 var = IntVar()
-game1 = Radiobutton(window, text = 'Sudoku', variable = var, command = lambda: setGame(game1, var.get(), gameButton),
-            value = 1, bg = "magenta", fg = "white", font = 60, selectcolor = 'magenta',activeforeground = 'magenta')
-game1.place(relx = .75, rely = .5)
-game2 = Radiobutton(window, text = 'Flappy Bird', variable = var, command = lambda: setGame(game2, var.get(), gameButton),
-            value = 2, bg = "magenta", fg = "white", font = 60, selectcolor = 'magenta', activeforeground = 'magenta')
-game2.place(relx = .85, rely = .5)
-game3 = Radiobutton(window, text = 'Pong', variable = var, command = lambda: setGame(game3, var.get(), gameButton),
-            value = 3, bg = "magenta", fg = "white", font = 60, selectcolor = 'magenta', activeforeground = 'magenta')
-game3.place(relx = .95, rely = .5)
+game1 = Radiobutton(window, text='Sudoku', variable=var, command=lambda: setGame(game1, var.get(), gameButton),
+                    value=1, bg="magenta", fg="white", font=60, selectcolor='magenta', activeforeground='magenta')
+game1.place(relx=.75, rely=.5)
+game2 = Radiobutton(window, text='Flappy Bird', variable=var, command=lambda: setGame(game2, var.get(), gameButton),
+                    value=2, bg="magenta", fg="white", font=60, selectcolor='magenta', activeforeground='magenta')
+game2.place(relx=.85, rely=.5)
+game3 = Radiobutton(window, text='Pong', variable=var, command=lambda: setGame(game3, var.get(), gameButton),
+                    value=3, bg="magenta", fg="white", font=60, selectcolor='magenta', activeforeground='magenta')
+game3.place(relx=.95, rely=.5)
 
 
 ##need to make a label then just call "tieRefresh right after"
