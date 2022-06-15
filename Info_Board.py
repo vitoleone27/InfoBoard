@@ -171,8 +171,151 @@ def openGames(value):
 
 
 def setUpSudoku():
-    playSudoku()
+    sudokuWindow = Toplevel(window)
+    sudokuWindow.title("How Smart Are Ya")
+    width, height = sudokuWindow.winfo_screenwidth(), sudokuWindow.winfo_screenheight()
+    sudokuWindow.geometry('%dx%d+0+0' % (width, height))
+    canvas = Canvas(sudokuWindow, width=width, height=height, bg="Magenta")
+    canvas.pack()
 
+    createButton(sudokuWindow, "Close")
+
+    background = Label(canvas, bg = "black", width = 84, height = 86)
+    canvas.create_window(width * .5, height * .075, window=background)
+
+    entryBoxList = []
+    global correct
+    correct = False
+    xInc = 0
+    for i in range(0,9):
+        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
+        canvas.create_window(width * (.3275 + xInc), height * .05, window=entryBox)
+        xInc += .04125
+        if i == 2 or i == 5:
+            xInc += .0075
+        entryBoxList.append(entryBox)
+    xInc = 0
+    for i in range(0,9):
+        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
+        canvas.create_window(width * (.3275 + xInc), height * .125, window=entryBox)
+        xInc += .04125
+        if i == 2 or i == 5:
+            xInc += .0075
+        entryBoxList.append(entryBox)
+    xInc = 0
+    for i in range(0,9):
+        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
+        canvas.create_window(width * (.3275 + xInc), height * .2, window=entryBox)
+        xInc += .04125
+        if i == 2 or i == 5:
+            xInc += .0075
+        entryBoxList.append(entryBox)
+    xInc = 0
+
+    for i in range(0,9):
+        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
+        canvas.create_window(width * (.3275 + xInc), height * .3, window=entryBox)
+        xInc += .04125
+        if i == 2 or i == 5:
+            xInc += .0075
+        entryBoxList.append(entryBox)
+
+    xInc = 0
+    for i in range(0,9):
+        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
+        canvas.create_window(width * (.3275 + xInc), height * .375, window=entryBox)
+        xInc += .04125
+        if i == 2 or i == 5:
+            xInc += .0075
+        entryBoxList.append(entryBox)
+    xInc = 0
+    for i in range(0,9):
+        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
+        canvas.create_window(width * (.3275 + xInc), height * .45, window=entryBox)
+        xInc += .04125
+        if i == 2 or i == 5:
+            xInc += .0075
+        entryBoxList.append(entryBox)
+    xInc = 0
+    for i in range(0,9):
+        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
+        canvas.create_window(width * (.3275 + xInc), height * .55, window=entryBox)
+        xInc += .04125
+        if i == 2 or i == 5:
+            xInc += .0075
+        entryBoxList.append(entryBox)
+
+    xInc = 0
+    for i in range(0,9):
+        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
+        canvas.create_window(width * (.3275 + xInc), height * .625, window=entryBox)
+        xInc += .04125
+        if i == 2 or i == 5:
+            xInc += .0075
+        entryBoxList.append(entryBox)
+    xInc = 0
+    for i in range(0,9):
+        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
+        canvas.create_window(width * (.3275 + xInc), height * .7, window=entryBox)
+        xInc += .04125
+        if i == 2 or i == 5:
+            xInc += .0075
+        entryBoxList.append(entryBox)
+
+    tries = 1
+    tryLabel = Label(canvas, text = "Tries:\n"+str(tries), bg = "magenta", fg= "white", font=("helvetica 50"))
+    canvas.create_window(width*.85, height*.25, window=tryLabel)
+
+    enterButton = Button(canvas, text="SUBMIT", font=("Helvetica 20 bold"), fg="magenta", bg="white",
+            activeforeground = "white", activebackground = "magenta", command= lambda: checkGame(canvas,entryBoxList, correct, tries, tryLabel, enterButton))
+    enterButton.place(relx=.8575, rely=.5, anchor=CENTER)
+
+def checkSquares(squareList, correct):
+    try:
+        index = 0
+        for i in range(0,9):
+            if i % 3 == 1:
+                index = i*9
+            squareSet = set()
+            squareSet.add(int(squareList[i].get().strip()))
+            squareSet.add(int(squareList[i+1].get().strip()))
+            squareSet.add(int(squareList[i+2].get().strip()))
+            squareSet.add(int(squareList[i+9].get().strip()))
+            squareSet.add(int(squareList[i+10].get().strip()))
+            squareSet.add(int(squareList[i+11].get().strip()))
+            squareSet.add(int(squareList[i+18].get().strip()))
+            squareSet.add(int(squareList[i+19].get().strip()))
+            squareSet.add(int(squareList[i+20].get().strip()))
+            print(len(squareSet))
+            if len(squareSet()) < 9:
+                correct = False
+                break
+            else:
+                index +=3
+    except:
+        correct=False
+        return correct
+    return correct
+
+def checkGame(canvas, squareList, correct, tries, tryLabel, enterButton):
+    correct = True
+    try:
+        if checkSquares(squareList, correct):
+            for i in range(0,8):
+                if int(squareList[i].get().strip()) == int(squareList[i+1].get().strip()) or int(squareList[i].get().strip()) == int(squareList[i+9].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+18].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+27].get().strip()) or int(squareList[i].get().strip()) == int(squareList[i+36].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+45].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+54].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+63].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+72].get().strip()):
+                    correct = False
+        else:
+            correct = False
+
+    except:
+        correct = False
+
+    if not correct:
+        tries +=1
+        tryLabel.configure(text = "Tries:\n"+str(tries))
+        enterButton.configure(command=lambda:checkGame(canvas,squareList, correct, tries, tryLabel, enterButton))
+    else:
+        canvas.create_text(width / 2, height / 5, text="Smarty Pants!", fill="Magenta", font=("Helvetica 60 bold"))
 
 def playSudoku():
     print("Sudoku")
@@ -209,32 +352,29 @@ def setUpPong():
     choice = StringVar()
     choice.set("St. Rose")
     themeOptions = OptionMenu(pongWindow, choice, *options)
+    themeOptions.configure(width=10, font = ("Helvetica 20 bold"), fg="magenta", bg="white", activeforeground = "white", activebackground = "magenta")
     themeOptions.place(relx = .5, rely = .4, anchor = CENTER)
 
 
     var = IntVar()
-    easy = Radiobutton(pongWindow, text='Easy', variable=var, width=10,
-                       command=lambda: startButton.configure(
-                           command=lambda: playPong(entryBoxLeft.get(), entryBoxRight.get(), var.get(),
-                            choice.get())),
-                       value=1, bg="white", fg="magenta", font=("Helvetica 20 bold"), selectcolor='white',
-                       activeforeground='magenta')
-    easy.place(relx=.25, rely=.25, anchor=CENTER)
-    medium = Radiobutton(pongWindow, text='Medium', variable=var, width=10,
-                         command=lambda: startButton.configure(
-                             command=lambda: playPong(entryBoxLeft.get(), entryBoxRight.get(), var.get(), choice.get())),
-                         value=2, bg="white", fg="magenta", font=("Helvetica 20 bold"), selectcolor='white',
-                         activeforeground='magenta')
-    medium.place(relx=.5, rely=.25, anchor=CENTER)
-    medium.select()
-    hard = Radiobutton(pongWindow, text='Hard', variable=var, width=10,
+    easy = Radiobutton(pongWindow, text='Easy', variable=var, width=10, fg="magenta", bg="white", activeforeground = "white", activebackground = "magenta",
                        command=lambda: startButton.configure(
                            command=lambda: playPong(entryBoxLeft.get(), entryBoxRight.get(), var.get(), choice.get())),
-                       value=3, bg="white", fg="magenta", font=("Helvetica 20 bold"), selectcolor='white',
-                       activeforeground='magenta')
+                       value=1, font=("Helvetica 20 bold"), selectcolor='white')
+    easy.place(relx=.25, rely=.25, anchor=CENTER)
+    medium = Radiobutton(pongWindow, text='Medium', variable=var, width=10, fg="magenta", bg="white", activeforeground = "white", activebackground = "magenta",
+                         command=lambda: startButton.configure(
+                             command=lambda: playPong(entryBoxLeft.get(), entryBoxRight.get(), var.get(), choice.get())),
+                         value=2, font=("Helvetica 20 bold"), selectcolor='white')
+    medium.place(relx=.5, rely=.25, anchor=CENTER)
+    medium.select()
+    hard = Radiobutton(pongWindow, text='Hard', variable=var, width=10, fg="magenta", bg="white", activeforeground = "white", activebackground = "magenta",
+                       command=lambda: startButton.configure(
+                           command=lambda: playPong(entryBoxLeft.get(), entryBoxRight.get(), var.get(), choice.get())),
+                       value=3,font=("Helvetica 20 bold"), selectcolor='white')
     hard.place(relx=.75, rely=.25, anchor=CENTER)
 
-    startButton = Button(canvas, text="START", font=("Helvetica 30"),
+    startButton = Button(canvas, text="START", font=("Helvetica 30 bold"), fg="magenta", bg="white", activeforeground = "white", activebackground = "magenta",
                          command=lambda: playPong(entryBoxLeft.get(), entryBoxRight.get(), 2, choice.get()))
     startButton.place(relx=.5, rely=.6, anchor=CENTER)
 
@@ -279,6 +419,7 @@ def playPong(leftPlayer, rightPlayer, difficulty, theme):
         stickWidth = 8
         leftStartDistance = -300
         rightStartDistance = 300
+        startHeight = -200
         boardHeight = 300
         boardWidth = rightStartDistance + 100
     elif difficulty == 2:
@@ -286,6 +427,7 @@ def playPong(leftPlayer, rightPlayer, difficulty, theme):
         stickWidth = 6
         leftStartDistance = -200
         rightStartDistance = 200
+        startHeight = -120
         boardHeight = 280
         boardWidth = rightStartDistance + 100
     elif difficulty == 3:
@@ -293,6 +435,7 @@ def playPong(leftPlayer, rightPlayer, difficulty, theme):
         stickWidth = 5
         leftStartDistance = -100
         rightStartDistance = 100
+        startHeight = -100
         boardHeight = 250
         boardWidth = rightStartDistance + 100
 
@@ -327,7 +470,7 @@ def playPong(leftPlayer, rightPlayer, difficulty, theme):
     rightPad.color(paddleColor)
     rightPad.shapesize(stretch_wid=stickWidth, stretch_len=2)
     rightPad.penup()
-    rightPad.goto(rightStartDistance,-120)
+    rightPad.goto(rightStartDistance, startHeight)
 
     ball = turtle.Turtle()
     ball.speed(40)
@@ -349,25 +492,28 @@ def playPong(leftPlayer, rightPlayer, difficulty, theme):
     score.goto(0, 350)
     score.write("{}: 0      {}: 0".format(leftPlayer,rightPlayer), align='center', font=("Courier", 30, "bold"))
 
-    help = turtle.Turtle()
-    help.color(boardColor)
-    help.penup()
-    help.hideturtle()
-    help.goto(rightStartDistance + 250, 75)
-    help.write("Press \'p\' to pause", align='center', font=("Courier", 20, "normal"))
-    help.goto(rightStartDistance + 250, 25)
-    help.write("New Game 10 Seconds", align='center', font=("Courier", 20, "normal"))
-    help.goto(rightStartDistance + 250, 0)
-    help.write("After \'Game Over\'", align='center', font=("Courier", 20, "normal"))
-    help.goto(rightStartDistance + 250, -50)
-    help.write("Highest Scoring Games and", align='center', font=("Courier", 20, "normal"))
-    help.goto(rightStartDistance + 250, -75)
-    help.write("Biggest Wins Get Ranked", align='center', font=("Courier", 20, "normal"))
+    helpText = turtle.Turtle()
+    helpText.color(boardColor)
+    helpText.penup()
+    helpText.hideturtle()
+    helpText.goto(rightStartDistance + 350, 130)
+    helpText.write("Left: 'q' = UP, 'z' = DOWN", align='center', font=("Courier", 20, "bold"))
+    helpText.goto(rightStartDistance + 350, 100)
+    helpText.write("Right: UP = UP, DOWN = DOWN", align='center', font=("Courier", 20, "bold"))
+    helpText.goto(rightStartDistance + 350, 25)
+    helpText.write("New Game 10 Seconds", align='center', font=("Courier", 20, "bold"))
+    helpText.goto(rightStartDistance + 350, 0)
+    helpText.write("After \'Game Over\'", align='center', font=("Courier", 20, "bold"))
+    helpText.goto(rightStartDistance + 350, -75)
+    helpText.write("Highest Scoring Games and", align='center', font=("Courier", 20, "bold"))
+    helpText.goto(rightStartDistance + 350, -105)
+    helpText.write("Biggest Wins Get Ranked", align='center', font=("Courier", 20, "bold"))
 
     def leftUp():
-        y = leftPad.ycor()
-        y += stickSpeed
-        leftPad.sety(y)
+        if gameOn == True:
+            y = leftPad.ycor()
+            y += stickSpeed
+            leftPad.sety(y)
 
     def leftDown():
         y = leftPad.ycor()
@@ -423,8 +569,8 @@ def playPong(leftPlayer, rightPlayer, difficulty, theme):
     screen.onkeypress(pause, "p")
     screen.onkeypress(unpause, "u")
     screen.listen()
-    while ((leftScore < 3 and rightScore < 3) or (leftScore >= 3 and (leftScore - rightScore) < 2) or (
-            rightScore >= 3 and (rightScore - leftScore) < 2)):
+    while ((leftScore < 7 and rightScore <7) or (leftScore >= 7 and abs(leftScore - rightScore) < 2) or (
+            rightScore >= 7 and abs(rightScore - leftScore) < 2)):
         gameOn = True
         if not paused:
             screen.update()
@@ -443,9 +589,9 @@ def playPong(leftPlayer, rightPlayer, difficulty, theme):
                 ball.dy *= -1
                 leftPad.goto(leftStartDistance,0)
                 if ball.dy < 0:
-                    rightPad.goto(rightStartDistance, -120)
+                    rightPad.goto(rightStartDistance, startHeight)
                 else:
-                    rightPad.goto(rightStartDistance, 120)
+                    rightPad.goto(rightStartDistance, -1 * startHeight)
                 score.clear()
                 score.write("{}: {}      {}: {}".format(leftPlayer, leftScore, rightPlayer, rightScore), align='center',
                             font=('Courier', 30, "bold"))
@@ -456,9 +602,9 @@ def playPong(leftPlayer, rightPlayer, difficulty, theme):
                 ball.dy *= -1
                 rightPad.goto(rightStartDistance, 0)
                 if ball.dy < 0:
-                    leftPad.goto(leftStartDistance, -120)
+                    leftPad.goto(leftStartDistance, startHeight)
                 else:
-                    leftPad.goto(leftStartDistance, 120)
+                    leftPad.goto(leftStartDistance, -1 * startHeight)
                 score.clear()
                 score.write("{}: {}      {}: {}".format(leftPlayer, leftScore, rightPlayer, rightScore), align='center',
                             font=('Courier', 30, "bold"))
@@ -481,11 +627,11 @@ def playPong(leftPlayer, rightPlayer, difficulty, theme):
     gameOver.color(gameOverColor)
     if leftScore > rightScore:
         gameOver.write("GAME OVER:", align='center', font=('Courier', 50, "bold"))
-        gameOver.goto(0, -50)
+        gameOver.goto(0, -75)
         gameOver.write("{} WINS!".format(leftPlayer), align='center', font=('Courier', 50, "bold"))
     else:
         gameOver.write("GAME OVER:", align='center', font=('Courier', 50, "bold"))
-        gameOver.goto(0, -50)
+        gameOver.goto(0, -75)
         gameOver.write("{} WINS!".format(rightPlayer), align='center', font=('Courier', 50, "bold"))
     gameOver.hideturtle()
     screen.ontimer(screen.bye, 10000)
@@ -752,7 +898,7 @@ def createReminderLists(window, canvas, list, buttonsList, fileName, entryBox):
         label = Label(window, text=elementText[0].strip(), fg="gold", bg="ForestGreen",
                       font=("Helvetica 25 bold"))
         canvas.create_window(100, y, anchor='w', window=label)
-        doneButton = Button(window, text=elementText[1].strip(), justify=CENTER, width=5,
+        doneButton = Button(window, text=elementText[1].strip(), justify=CENTER, width=10,
                             command=lambda index=i, currButtons=buttonsList: createReminderLists(window, canvas,
                                                                                                  newList(index,
                                                                                                          tempList),
@@ -851,21 +997,21 @@ def setGame(button, game, gameButton):
 
 var = IntVar()
 game1 = Radiobutton(window, text='Sudoku', variable=var, command=lambda: setGame(game1, var.get(), gameButton),
-                    value=1, bg="magenta", fg="white", font=60, selectcolor='magenta', activeforeground='magenta')
+                    value=1, bg="magenta", fg="white", font=("Helvetica 20 bold"), selectcolor='magenta', activeforeground='magenta')
 game1.place(relx=.75, rely=.5)
 game2 = Radiobutton(window, text='Flappy Bird', variable=var, command=lambda: setGame(game2, var.get(), gameButton),
-                    value=2, bg="magenta", fg="white", font=60, selectcolor='magenta', activeforeground='magenta')
-game2.place(relx=.85, rely=.5)
+                    value=2, bg="magenta", fg="white", font=("Helvetica 20 bold"), selectcolor='magenta', activeforeground='magenta')
+game2.place(relx=.83, rely=.5)
 game3 = Radiobutton(window, text='Pong', variable=var, command=lambda: setGame(game3, var.get(), gameButton),
-                    value=3, bg="magenta", fg="white", font=60, selectcolor='magenta', activeforeground='magenta')
-game3.place(relx=.95, rely=.5)
+                    value=3, bg="magenta", fg="white", font=("Helvetica 20 bold"), selectcolor='magenta', activeforeground='magenta')
+game3.place(relx=.9375, rely=.5)
 
 
 ##need to make a label then just call "tieRefresh right after"
 def timeRefresh():
     date = datetime.now()
     currentTime = time.strftime("%I:%M:%S %p", time.localtime())
-    currentDate = date.strftime("%m/%d")
+    currentDate = date.strftime("%m/%d/%y")
     label.config(text=currentTime + "\r" + currentDate)
     window.after(1000, timeRefresh)
 
