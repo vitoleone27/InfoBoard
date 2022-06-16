@@ -17,6 +17,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 import turtle
+from PIL import Image, ImageTk
 
 window = Tk()
 window.update_idletasks()
@@ -171,6 +172,13 @@ def openGames(value):
 
 
 def setUpSudoku():
+    global seconds
+    seconds = 0
+    global minutes
+    minutes = 0
+    global running
+    running = True
+
     sudokuWindow = Toplevel(window)
     sudokuWindow.title("How Smart Are Ya")
     width, height = sudokuWindow.winfo_screenwidth(), sudokuWindow.winfo_screenheight()
@@ -180,8 +188,6 @@ def setUpSudoku():
 
     createButton(sudokuWindow, "Close")
 
-    background = Label(canvas, bg = "black", width = 84, height = 86)
-    canvas.create_window(width * .5, height * .075, window=background)
 
     entryBoxList = []
     global correct
@@ -262,6 +268,7 @@ def setUpSudoku():
             xInc += .0075
         entryBoxList.append(entryBox)
 
+
     tries = 1
     tryLabel = Label(canvas, text = "Tries:\n"+str(tries), bg = "magenta", fg= "white", font=("helvetica 50"))
     canvas.create_window(width*.85, height*.25, window=tryLabel)
@@ -270,39 +277,82 @@ def setUpSudoku():
             activeforeground = "white", activebackground = "magenta", command= lambda: checkGame(canvas,entryBoxList, correct, tries, tryLabel, enterButton))
     enterButton.place(relx=.8575, rely=.5, anchor=CENTER)
 
+
+    timerLabel = Label(canvas, text='', font=("Helvetica 30 bold"))
+    timerLabel.place(relx=.8575, rely=.15, anchor=CENTER)
+
+
+    def update():
+        global running
+        global seconds
+        global minutes
+        if running:
+
+            if seconds >= 10 and minutes < 10:
+                display = "0{}:{}".format(minutes,seconds)
+            elif seconds < 10 and minutes >= 10:
+                display = "{}:0{}".format(minutes,seconds)
+            elif seconds >= 10 and minutes >= 10:
+                display = "{}:{}".format(minutes,seconds)
+            else:
+                display = "0{}:0{}".format(minutes, seconds)
+
+            timerLabel.configure(text=display)
+            seconds += 1
+            if seconds >= 60:
+                minutes += 1
+                seconds = 0
+            sudokuWindow.after(1000, update)
+            updating()
+
+    def updating():
+        global running
+        if running:
+            sudokuWindow.after(1000, updating)
+
+    update()
+
 def checkSquares(squareList, correct):
     try:
         index = 0
         for i in range(0,9):
-            if i % 3 == 1:
+            if i % 3 == 0 and i != 0:
                 index = i*9
+                print("second row")
+            print(i, index)
             squareSet = set()
-            squareSet.add(int(squareList[i].get().strip()))
-            squareSet.add(int(squareList[i+1].get().strip()))
-            squareSet.add(int(squareList[i+2].get().strip()))
-            squareSet.add(int(squareList[i+9].get().strip()))
-            squareSet.add(int(squareList[i+10].get().strip()))
-            squareSet.add(int(squareList[i+11].get().strip()))
-            squareSet.add(int(squareList[i+18].get().strip()))
-            squareSet.add(int(squareList[i+19].get().strip()))
-            squareSet.add(int(squareList[i+20].get().strip()))
+            squareSet.add(int(squareList[index].get().strip()))
+            squareSet.add(int(squareList[index+1].get().strip()))
+            squareSet.add(int(squareList[index+2].get().strip()))
+            squareSet.add(int(squareList[index+9].get().strip()))
+            squareSet.add(int(squareList[index+10].get().strip()))
+            squareSet.add(int(squareList[index+11].get().strip()))
+            squareSet.add(int(squareList[index+18].get().strip()))
+            squareSet.add(int(squareList[index+19].get().strip()))
+            squareSet.add(int(squareList[index+20].get().strip()))
+
             print(len(squareSet))
-            if len(squareSet()) < 9:
+            print(str(squareSet))
+            if len(squareSet) < 9:
                 correct = False
+                print("here: break")
                 break
             else:
-                index +=3
-    except:
-        correct=False
+                index += 3
+                print("here: else index increase")
+    except Exception as e:
+        print(e)
+        correct =False
         return correct
     return correct
 
 def checkGame(canvas, squareList, correct, tries, tryLabel, enterButton):
+    global running
     correct = True
     try:
         if checkSquares(squareList, correct):
             for i in range(0,8):
-                if int(squareList[i].get().strip()) == int(squareList[i+1].get().strip()) or int(squareList[i].get().strip()) == int(squareList[i+9].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+18].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+27].get().strip()) or int(squareList[i].get().strip()) == int(squareList[i+36].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+45].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+54].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+63].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+72].get().strip()):
+                if int(squareList[i].get().strip()) == int(squareList[i+9].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+18].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+27].get().strip()) or int(squareList[i].get().strip()) == int(squareList[i+36].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+45].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+54].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+63].get().strip())or int(squareList[i].get().strip()) == int(squareList[i+72].get().strip()):
                     correct = False
         else:
             correct = False
@@ -313,9 +363,12 @@ def checkGame(canvas, squareList, correct, tries, tryLabel, enterButton):
     if not correct:
         tries +=1
         tryLabel.configure(text = "Tries:\n"+str(tries))
-        enterButton.configure(command=lambda:checkGame(canvas,squareList, correct, tries, tryLabel, enterButton))
+        enterButton.configure(command=lambda:checkGame(canvas,squareList, correct, tries, tryLabel, enterButton, running))
     else:
-        canvas.create_text(width / 2, height / 5, text="Smarty Pants!", fill="Magenta", font=("Helvetica 60 bold"))
+        congrats = Label(canvas, text="Smarty Pants!", font=("Helvetica 50 bold"), fg="Magenta")
+        canvas.create_window(width / 2, height / 5, window=congrats)
+        running = False
+
 
 def playSudoku():
     print("Sudoku")
@@ -1019,6 +1072,11 @@ def timeRefresh():
 font = ('Arial', 80)
 label = Label(window, font=font, fg="white", bg="black")
 label.place(relx=.5, rely=.45, anchor=CENTER)
+
+
+# img = ImageTk.PhotoImage(Image.open("/Users/vitoleone1127/PersonalProjects/InfoBoard/Sun.JPEG"))
+# panel = Label(window, width= 500, height = 500,image = img)
+# panel.place(relx = .5, rely=.25, anchor=CENTER)
 
 timeRefresh()
 
