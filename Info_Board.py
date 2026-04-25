@@ -134,12 +134,10 @@ def setLocation(window, canvas, website, entryBox, newLocationButton):
     entryBoxWeather.bind("<FocusIn>", lambda event: entryBoxWeather.delete(0, "end"))
     canvas.create_window(width / 2, height / 20, window=entryBoxWeather)
 
-
     newLocationButton = Button(window, text="Set Location", wraplength=200, justify=CENTER,
                         command=lambda: changeLocation(window, canvas, website, entryBoxWeather, newLocationButton),
                                font=("Helvetica 20 bold"), bg="white", fg="DarkBlue")
     newLocationButton.place(relx=.65, rely=.05, anchor=CENTER)
-
 
 
 def changeLocation(window, canvas, website, entryBox, newLocationButton):
@@ -155,7 +153,6 @@ def changeLocation(window, canvas, website, entryBox, newLocationButton):
     selection = driver.find_element(By.CLASS_NAME, "autocomplete-suggestion")
     selection.click()
 
-
     website = driver.current_url
     setLocation(window, canvas, website, entryBox, newLocationButton)
 
@@ -166,12 +163,41 @@ def openGames(value):
     if value == 1:
         setUpSudoku()
     elif value == 2:
-        setUpFlappyBird()
+        setUpWordle()
     elif value == 3:
         setUpPong()
 
 
 def setUpSudoku():
+    sudokuSetupWindow = Toplevel(window)
+    sudokuSetupWindow.title("Chooze it")
+    width, height = sudokuSetupWindow.winfo_screenwidth(), sudokuSetupWindow.winfo_screenheight()
+    sudokuSetupWindow.geometry('%dx%d+0+0' % (width, height))
+    canvas = Canvas(sudokuSetupWindow, width=width, height=height, bg="Magenta")
+    canvas.pack()
+
+    options = ["Purple","St. Rose","Jokes","LaSalle"]
+
+    choice = StringVar()
+    choice.set("St. Rose")
+    themeOptions = OptionMenu(sudokuSetupWindow, choice, *options)
+    themeOptions.configure(width=10, font = ("Helvetica 20 bold"), fg="magenta", bg="white", activeforeground = "white", activebackground = "magenta")
+    themeOptions.place(relx = .5, rely = .4, anchor = CENTER)
+
+    entryBox = Entry(canvas, font=("Helvetica 20"))
+    entryBox.insert(0, "Name")
+    entryBox.bind("<Button-1>", lambda event: entryBox.delete(0, "end"))
+    canvas.create_window(width * .5, height * .5, window=entryBox)
+
+
+    startButton = Button(canvas, text="START", font=("Helvetica 30 bold"), fg="magenta", bg="white", activeforeground = "white", activebackground = "magenta",
+                         command=lambda: playSudoku(entryBox.get(), choice.get()))
+    startButton.place(relx=.5, rely=.6, anchor=CENTER)
+
+    createButton(sudokuSetupWindow, "Close")
+
+
+def playSudoku(name, theme):
     global seconds
     seconds = 0
     global minutes
@@ -179,115 +205,74 @@ def setUpSudoku():
     global running
     running = True
 
+    if theme == "Purple":
+        backgroundColor = "magenta"
+        squareColor = "yellow"
+        textColor = "cyan"
+        numberColor = "magenta"
+    elif theme == "St. Rose":
+        backgroundColor = "ForestGreen"
+        squareColor = "gold"
+        textColor = "white"
+        numberColor = "red"
+    elif theme == "Jokes":
+        backgroundColor = "yellow"
+        squareColor = "black"
+        textColor = "black"
+        numberColor = "cyan"
+    else:
+        backgroundColor = "DarkBlue"
+        squareColor = "white"
+        textColor = "gold"
+        numberColor = "DarkBlue"
+
     sudokuWindow = Toplevel(window)
     sudokuWindow.title("How Smart Are Ya")
     width, height = sudokuWindow.winfo_screenwidth(), sudokuWindow.winfo_screenheight()
     sudokuWindow.geometry('%dx%d+0+0' % (width, height))
-    canvas = Canvas(sudokuWindow, width=width, height=height, bg="Magenta")
+    canvas = Canvas(sudokuWindow, width=width, height=height, bg=backgroundColor)
     canvas.pack()
 
     createButton(sudokuWindow, "Close")
-
 
     entryBoxList = []
     global correct
     correct = False
     xInc = 0
-    for i in range(0,9):
-        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
-        canvas.create_window(width * (.3275 + xInc), height * .05, window=entryBox)
+    yInc = 0
+    spaceList = [2,5,11,14,20,23,29,32,38,41,47,50,56,59,65,68,74,77]
+    newLineList = [8,17,26,35,44,53,62,71]
+    for i in range(0,81):
+        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2, fg = numberColor, bg = squareColor)
+        entryBox.insert(0, " ")
+        #entryBox.configure(state="disabled")
+        canvas.create_window(width * (.3275 + xInc), height * (.05 + yInc), window=entryBox)
         xInc += .04125
-        if i == 2 or i == 5:
+        if i in newLineList:
+            yInc += .075
+            xInc = 0
+        if i in spaceList:
             xInc += .0075
+        if i == 26 or i == 53:
+            yInc += .015
         entryBoxList.append(entryBox)
-    xInc = 0
-    for i in range(0,9):
-        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
-        canvas.create_window(width * (.3275 + xInc), height * .125, window=entryBox)
-        xInc += .04125
-        if i == 2 or i == 5:
-            xInc += .0075
-        entryBoxList.append(entryBox)
-    xInc = 0
-    for i in range(0,9):
-        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
-        canvas.create_window(width * (.3275 + xInc), height * .2, window=entryBox)
-        xInc += .04125
-        if i == 2 or i == 5:
-            xInc += .0075
-        entryBoxList.append(entryBox)
-    xInc = 0
-
-    for i in range(0,9):
-        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
-        canvas.create_window(width * (.3275 + xInc), height * .3, window=entryBox)
-        xInc += .04125
-        if i == 2 or i == 5:
-            xInc += .0075
-        entryBoxList.append(entryBox)
-
-    xInc = 0
-    for i in range(0,9):
-        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
-        canvas.create_window(width * (.3275 + xInc), height * .375, window=entryBox)
-        xInc += .04125
-        if i == 2 or i == 5:
-            xInc += .0075
-        entryBoxList.append(entryBox)
-    xInc = 0
-    for i in range(0,9):
-        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
-        canvas.create_window(width * (.3275 + xInc), height * .45, window=entryBox)
-        xInc += .04125
-        if i == 2 or i == 5:
-            xInc += .0075
-        entryBoxList.append(entryBox)
-    xInc = 0
-    for i in range(0,9):
-        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
-        canvas.create_window(width * (.3275 + xInc), height * .55, window=entryBox)
-        xInc += .04125
-        if i == 2 or i == 5:
-            xInc += .0075
-        entryBoxList.append(entryBox)
-
-    xInc = 0
-    for i in range(0,9):
-        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
-        canvas.create_window(width * (.3275 + xInc), height * .625, window=entryBox)
-        xInc += .04125
-        if i == 2 or i == 5:
-            xInc += .0075
-        entryBoxList.append(entryBox)
-    xInc = 0
-    for i in range(0,9):
-        entryBox = Entry(canvas, font=("Helvetica 50 bold"), width = 2)
-        canvas.create_window(width * (.3275 + xInc), height * .7, window=entryBox)
-        xInc += .04125
-        if i == 2 or i == 5:
-            xInc += .0075
-        entryBoxList.append(entryBox)
-
 
     tries = 1
-    tryLabel = Label(canvas, text = "Tries:\n"+str(tries), bg = "magenta", fg= "white", font=("helvetica 50"))
-    canvas.create_window(width*.85, height*.25, window=tryLabel)
+    tryLabel = Label(canvas, text = "Tries:\n"+str(tries), bg = backgroundColor, fg = textColor, font=("helvetica 60"))
+    canvas.create_window(width*.85, height*.3, window=tryLabel)
 
-    enterButton = Button(canvas, text="SUBMIT", font=("Helvetica 20 bold"), fg="magenta", bg="white",
-            activeforeground = "white", activebackground = "magenta", command= lambda: checkGame(canvas,entryBoxList, correct, tries, tryLabel, enterButton))
+    timerLabel = Label(canvas, text='', bg= backgroundColor, fg= textColor,font=("Helvetica 60 bold"))
+    timerLabel.place(relx=.85, rely=.15, anchor=CENTER)
+
+    enterButton = Button(canvas, text="SUBMIT", font=("Helvetica 60 bold"), bg = backgroundColor, fg = textColor,
+            activeforeground = backgroundColor, activebackground = textColor, command= lambda: checkGame(canvas,entryBoxList, correct, tries, tryLabel, enterButton, timerLabel, name, backgroundColor, textColor))
     enterButton.place(relx=.8575, rely=.5, anchor=CENTER)
-
-
-    timerLabel = Label(canvas, text='', font=("Helvetica 30 bold"))
-    timerLabel.place(relx=.8575, rely=.15, anchor=CENTER)
-
 
     def update():
         global running
         global seconds
         global minutes
         if running:
-
             if seconds >= 10 and minutes < 10:
                 display = "0{}:{}".format(minutes,seconds)
             elif seconds < 10 and minutes >= 10:
@@ -296,7 +281,6 @@ def setUpSudoku():
                 display = "{}:{}".format(minutes,seconds)
             else:
                 display = "0{}:0{}".format(minutes, seconds)
-
             timerLabel.configure(text=display)
             seconds += 1
             if seconds >= 60:
@@ -318,8 +302,6 @@ def checkSquares(squareList, correct):
         for i in range(0,9):
             if i % 3 == 0 and i != 0:
                 index = i*9
-                print("second row")
-            print(i, index)
             squareSet = set()
             squareSet.add(int(squareList[index].get().strip()))
             squareSet.add(int(squareList[index+1].get().strip()))
@@ -330,23 +312,17 @@ def checkSquares(squareList, correct):
             squareSet.add(int(squareList[index+18].get().strip()))
             squareSet.add(int(squareList[index+19].get().strip()))
             squareSet.add(int(squareList[index+20].get().strip()))
-
-            print(len(squareSet))
-            print(str(squareSet))
             if len(squareSet) < 9:
                 correct = False
-                print("here: break")
                 break
             else:
                 index += 3
-                print("here: else index increase")
     except Exception as e:
-        print(e)
         correct =False
         return correct
     return correct
 
-def checkGame(canvas, squareList, correct, tries, tryLabel, enterButton):
+def checkGame(canvas, squareList, correct, tries, tryLabel, enterButton, timerLabel, name, backgroundColor, textColor):
     global running
     correct = True
     try:
@@ -365,22 +341,89 @@ def checkGame(canvas, squareList, correct, tries, tryLabel, enterButton):
         tryLabel.configure(text = "Tries:\n"+str(tries))
         enterButton.configure(command=lambda:checkGame(canvas,squareList, correct, tries, tryLabel, enterButton, running))
     else:
-        congrats = Label(canvas, text="Smarty Pants!", font=("Helvetica 50 bold"), fg="Magenta")
-        canvas.create_window(width / 2, height / 5, window=congrats)
+        congrats = Label(canvas, text="Smarty Pants!\n{} completed in:\n{}".format(name,timerLabel['text']), font=("Helvetica 50 bold"), fg=backgroundColor, bg=textColor)
+        canvas.create_window(width / 2, height / 2, window=congrats)
         running = False
 
 
-def playSudoku():
-    print("Sudoku")
+def setUpWordle():
+    wordleSetUpWindow = Toplevel(window)
+    wordleSetUpWindow.title("House Rules")
+    width, height = wordleSetUpWindow.winfo_screenwidth(), wordleSetUpWindow.winfo_screenheight()
+    wordleSetUpWindow.geometry('%dx%d+0+0' % (width, height))
+    canvas = Canvas(wordleSetUpWindow, width=width, height=height, bg="Magenta")
+    canvas.pack()
 
+    entryBox = Entry(canvas, font=("Helvetica 20"))
+    entryBox.insert(0, "Player 1")
+    entryBox.bind("<Button-1>", lambda event: entryBox.delete(0, "end"))
+    canvas.create_window(width * .5, height * .5, window=entryBox)
 
-def setUpFlappyBird():
-    playFlappyBird()
+    options = ["Purple","St. Rose","Jokes","LaSalle"]
 
+    choice = StringVar()
+    choice.set("St. Rose")
+    themeOptions = OptionMenu(wordleSetUpWindow, choice, *options)
+    themeOptions.configure(width=10, font = ("Helvetica 20 bold"), fg="magenta", bg="white", activeforeground = "white", activebackground = "magenta")
+    themeOptions.place(relx = .5, rely = .4, anchor = CENTER)
 
-def playFlappyBird():
-    print("Flappy Bird")
+    startButton = Button(canvas, text="START", font=("Helvetica 30 bold"), fg="magenta", bg="white", activeforeground = "white", activebackground = "magenta",
+                         command=lambda: playWordle(entryBox.get(), choice.get()))
+    startButton.place(relx=.5, rely=.6, anchor=CENTER)
 
+    createButton(wordleSetUpWindow, "Close")
+
+def playWordle(name, theme):
+    if theme == "Purple":
+        backgroundColor = "magenta"
+        squareColor = "yellow"
+        letterColor = "cyan"
+        usedColor = "magenta"
+    elif theme == "St. Rose":
+        backgroundColor = "ForestGreen"
+        squareColor = "gold"
+        letterColor = "white"
+        usedColor = "red"
+    elif theme == "Jokes":
+        backgroundColor = "yellow"
+        squareColor = "black"
+        letterColor = "black"
+        usedColor = "cyan"
+    else:
+        backgroundColor = "DarkBlue"
+        squareColor = "white"
+        letterColor = "gold"
+        usedColor = "DarkBlue"
+
+    wordleWindow = Toplevel(window)
+    wordleWindow.title("Word it Up")
+    width, height = wordleWindow.winfo_screenwidth(), wordleWindow.winfo_screenheight()
+    wordleWindow.geometry('%dx%d+0+0' % (width, height))
+    canvas = Canvas(wordleWindow, width=width, height=height, bg=backgroundColor)
+    canvas.pack()
+
+    createButton(wordleWindow, "Close")
+
+    entryBoxList = []
+    usedLetters = []
+
+    x = 0
+    y = 0
+    endRows = [4,9,14,19,24,29]
+    for i in range(0,30):
+        label = Label(canvas, width= 10, height = 5, text="", fg = letterColor, bg = squareColor)
+        canvas.create_window(width * (.395 + x), height * (.075 + y), window = label)
+        x += .0525
+        if i in endRows:
+            y += .09
+            x = 0
+
+    x = 0
+    for i in range(0,5):
+        entryBox = Entry(canvas, font=("Helvetica 60 "), width = 2, fg = letterColor, bg = squareColor)
+        entryBox.insert(0, " ")
+        canvas.create_window(width * (.395 + x), height * (.1 + y), window = entryBox)
+        x += .0525
 
 def setUpPong():
     pongWindow = Toplevel(window)
@@ -392,12 +435,12 @@ def setUpPong():
 
     entryBoxLeft = Entry(canvas, font=("Helvetica 20"))
     entryBoxLeft.insert(0, "Player 1")
-    entryBoxLeft.bind("<FocusIn>", lambda event: entryBoxLeft.delete(0, "end"))
+    entryBoxLeft.bind("<Button-1>", lambda event: entryBoxLeft.delete(0, "end"))
     canvas.create_window(width * .4, height * .5, window=entryBoxLeft)
 
     entryBoxRight = Entry(canvas, font=("Helvetica 20"))
     entryBoxRight.insert(0, "Player 2")
-    entryBoxRight.bind("<FocusIn>", lambda event: entryBoxRight.delete(0, "end"))
+    entryBoxRight.bind("<Button-1>", lambda event: entryBoxRight.delete(0, "end"))
     canvas.create_window(width * .6, height * .5, window=entryBoxRight)
 
     options = ["Purple","St. Rose","Jokes","LaSalle"]
@@ -1052,9 +1095,9 @@ var = IntVar()
 game1 = Radiobutton(window, text='Sudoku', variable=var, command=lambda: setGame(game1, var.get(), gameButton),
                     value=1, bg="magenta", fg="white", font=("Helvetica 20 bold"), selectcolor='magenta', activeforeground='magenta')
 game1.place(relx=.75, rely=.5)
-game2 = Radiobutton(window, text='Flappy Bird', variable=var, command=lambda: setGame(game2, var.get(), gameButton),
+game2 = Radiobutton(window, text='Wordle', variable=var, command=lambda: setGame(game2, var.get(), gameButton),
                     value=2, bg="magenta", fg="white", font=("Helvetica 20 bold"), selectcolor='magenta', activeforeground='magenta')
-game2.place(relx=.83, rely=.5)
+game2.place(relx=.845, rely=.5)
 game3 = Radiobutton(window, text='Pong', variable=var, command=lambda: setGame(game3, var.get(), gameButton),
                     value=3, bg="magenta", fg="white", font=("Helvetica 20 bold"), selectcolor='magenta', activeforeground='magenta')
 game3.place(relx=.9375, rely=.5)
